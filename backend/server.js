@@ -26,9 +26,16 @@ const upload = multer({ storage: storage });
 
 const lettersFound = new Set();
 let currentWord = "";
+let currentSentence = "";
 const wordBank = [
     "aliens", "asteroids", "astronaut", "blackhole", "comet", "constellation", "cosmos", "earth", "eclipse", "galaxy", "gravity", "jupiter", "mars", "mercury", "meteor", "meteorite", "moon", "neptune", "orbit", "planet", "pluto", "rocket", "satellite", "saturn", "shuttle", "solar", "space", "spaceship", "star", "sun", "telescope", "universe", "uranus", "venus", "zodiac"
  ];
+
+const sentenceBank = [
+    "The sun is a star at the center of the Solar System.",
+    "The Solar System consists of the Sun and the objects that orbit it.",
+    "The Moon is Earth's only natural satellite."
+]
 
 app.use(express.json());
 app.use(express.static('public'));
@@ -62,6 +69,16 @@ app.get('/get-word', (req, res) => {
         let word = wordBank[Math.floor(Math.random() * wordBank.length)];
         currentWord = word;
         res.json({ currentWord: word });
+    }
+});
+
+app.get('/get-sentence', (req, res) => {  
+    if(currentSentence !== ""){
+        res.json({ currentSentence });
+    }else{
+        let sentence = sentenceBank[Math.floor(Math.random() * sentenceBank.length)];
+        currentSentence = sentence;
+        res.json({ currentSentence: sentence });
     }
 });
 
