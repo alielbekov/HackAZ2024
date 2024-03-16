@@ -5,6 +5,7 @@ const multer = require('multer');
 const { ocrSpace } = require('ocr-space-api-wrapper');
 const fs = require('fs');
 const uploadDir = 'uploads/';
+const cors = require('cors');
 const app = express();
 const PORT = 3000;
 
@@ -43,6 +44,7 @@ const sentenceBank = [
 
 app.use(express.json());
 app.use(express.static('public'));
+app.use(cors());
 
 app.post('/image', upload.single('image'), async (req, res) => {
     try {
