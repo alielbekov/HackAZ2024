@@ -25,6 +25,7 @@ document.getElementById('uploadButton').addEventListener('click', function() {
     if(imageInput.files.length > 0) {
         const formData = new FormData();
         formData.append('image', imageInput.files[0]);
+        console.log(imageInput.files[0]);
 
         fetch('/image', {
             method: 'POST',

@@ -5,12 +5,13 @@ const multer = require('multer');
 const { ocrSpace } = require('ocr-space-api-wrapper');
 const fs = require('fs');
 const uploadDir = 'uploads/';
+const app = express();
+const PORT = 3000;
+
+
 if (!fs.existsSync(uploadDir)) {
     fs.mkdirSync(uploadDir, { recursive: true });
 }
-
-const app = express();
-const PORT = 3000;
 
 // Rooms structure: Maps room ID to room state
 const rooms = new Map();
@@ -24,6 +25,7 @@ const storage = multer.diskStorage({
         cb(null, file.fieldname + '-' + Date.now() + '.' + file.originalname.split('.').pop());
     }
 });
+
 const upload = multer({ storage: storage });
 
 const lettersFound = new Set();
@@ -43,15 +45,34 @@ app.use(express.json());
 app.use(express.static('public'));
 
 app.post('/image', upload.single('image'), async (req, res) => {
-    if (!req.file) {
-        return res.status(400).json({ error: 'No file uploaded.' });
-    }
-    
     try {
-        const ocrResult = await ocrSpace(req.file.path, { apiKey: process.env.OCR_API_KEY });
+        let imagePath;
+        if (req.file) {
+            imagePath = req.file.path;
+        } else if (req.body.imageUri) {
+            // Fetch image from URI
+            const response = await fetch(req.body.imageUri);
+            if (!response.ok) {
+                return res.status(400).json({ error: 'Failed to fetch image from URI.' });
+            }
+            const buffer = await response.buffer();
+            // Create a temporary file to write the buffer
+            fs.writeFileSync('tempImage', buffer);
+            imagePath = 'tempImage';
+        } else {
+            return res.status(400).json({ error: 'No file uploaded or URI provided.' });
+        }
+
+        const ocrResult = await ocrSpace(imagePath, { apiKey: process.env.OCR_API_KEY });
         // Extract letters from OCR result and add to lettersFound set
+        const lettersFound = new Set();
         const letters = ocrResult.ParsedResults[0].ParsedText.replace(/[^a-zA-Z]/g, '').toLowerCase();
         Array.from(letters).forEach(letter => lettersFound.add(letter));
+
+        // Clean up temporary file if created from URI
+        if (req.body.imageUri) {
+            fs.unlinkSync(imagePath);
+        }
 
         res.json({lettersFound: Array.from(lettersFound)});
     } catch (error) {
@@ -60,6 +81,11 @@ app.post('/image', upload.single('image'), async (req, res) => {
             res.status(500).json({ error: 'OCR service error.' });
         } else {
             res.status(500).json({ error: error.message });
+        }
+
+        // Clean up temporary file in case of an error
+        if (req.body && req.body.imageUri) {
+            fs.unlinkSync('tempImage');
         }
     }
 });
