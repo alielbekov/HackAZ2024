@@ -8,32 +8,26 @@ export default function App() {
     const [imageUri, setImageUri] = useState(null);
     const [serverResponse, setServerResponse] = useState('');
     const [currentWord, setCurrentWord] = useState('');
+    
     const uploadImage = async (uri) => {
         // console.log(uri);
         const link = 'http://137.184.74.25:3000';
-        let formData = new FormData();
-        // let fileType = uri.substring(uri.lastIndexOf(".") + 1);
-
-        // Append the file to the FormData object
-        // The name 'image' corresponds to the name used on the server side for the file
-        formData.append('file', {
-            uri: uri.assets[0].uri,
-            type: uri.assets[0].mimeType,
-            name: uri.assets[0].fileName,
-        });
+        const payload = {
+            imageBase64: uri,
+          };
 
         try {
             const response = await fetch(link+'/image', { // Replace 'x/image' with your actual endpoint URL
-              method: 'POST',
-              body: formData,
-              headers: {
-                'Content-Type':'multipart/form-data'
-              }
+                method: 'POST',
+                headers: {
+                  'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(payload),
             });
         
-            if (!response.ok) {
-              throw new Error(`Server responded with ${response.status}: ${response.statusText}`);
-            }
+            // if (!response.ok) {
+            //   throw new Error(`Server responded with ${response.status}: ${response.statusText}`);
+            // }
         
             const responseData = await response.json(); // Assuming the server responds with JSON
             console.log('Upload successful:', responseData);
@@ -44,9 +38,9 @@ export default function App() {
           }
     };
 
-    const handleImage = (uri) => {
-        setImageUri(uri.assets[0].uri);
-        uploadImage(uri); // Additionally upload the image
+    const handleImage = (images) => {
+        setImageUri(images.assets[0].uri);
+        uploadImage(images.assets[0].uri); // Additionally upload the image
     };
 
     return (
