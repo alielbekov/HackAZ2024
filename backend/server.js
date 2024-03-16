@@ -34,7 +34,7 @@ const upload = multer({ storage: storage });
 let currentWord = "";
 let currentSentence = "";
 const wordBank = [
-    "aliens", "asteroids", "astronaut", "blackhole", "comet", "constellation", "cosmos", "earth", "eclipse", "galaxy", "gravity", "jupiter", "mars", "mercury", "meteor", "meteorite", "moon", "neptune", "orbit", "planet", "pluto", "rocket", "satellite", "saturn", "shuttle", "solar", "space", "spaceship", "star", "sun", "telescope", "universe", "uranus", "venus", "zodiac"
+    "abcdefghijklmnopqrstuvwxyz"
  ];
 
 const sentenceBank = [
