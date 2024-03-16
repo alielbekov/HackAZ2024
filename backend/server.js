@@ -69,12 +69,10 @@ app.post('/image', upload.single('image'), async (req, res) => {
         // Process and respond as necessary
         // add new letter to lettersFound and send it
 
-        var newLetters = ocrResult.ParsedResults[0].ParsedText.split('');
+        var newLetters = ocrResult.ParsedResults[0].ParsedText.toLowerCase().split('').filter(char => char >= 'a' && char <= 'z');
         for (let i = 0; i < newLetters.length; i++) {
             lettersFound.add(newLetters[i]);
         }
-
-        
         res.json({ lettersFound: Array.from(lettersFound) });
     } catch (error) {
         console.error('Error:', error);
