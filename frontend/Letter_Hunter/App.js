@@ -1,4 +1,4 @@
-import { StyleSheet, Text, View, Image, StatusBar, Platform, SafeAreaView  } from 'react-native';
+import {StyleSheet, Text, View, Image, StatusBar, SafeAreaView} from 'react-native';
 
 import Button from './components/Button';
 
@@ -6,15 +6,15 @@ const PlaceholderImage = require('./assets/road-1072821_1920.jpg');
 export default function App() {
   return (
     <SafeAreaView style={styles.container}>
-        <StatusBar backgroundColor='#25292e'/>
-        <View>
-            <Text style={{color:'white'}}>Letter Hunter</Text>
-        </View>
-        <View style={styles.imageContainer}> 
-            <Image source={PlaceholderImage} style={styles.image}/>
-        </View>
-        <View style={styles.footerContainer}>
-        <Button theme="primary" label="Choose a photo" />
+      <StatusBar backgroundColor='#25292e'/>
+      <View>
+        <Text style={{color: 'white'}}>Letter Hunter</Text>
+      </View>
+      <View style={styles.imageContainer}>
+        <Image source={PlaceholderImage} style={styles.image}/>
+      </View>
+      <View style={styles.footerContainer}>
+        <Button theme="primary" label="Take a photo"/>
       </View>
     </SafeAreaView>
   );
