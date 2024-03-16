@@ -1,9 +1,9 @@
-import {StyleSheet, View, Pressable, Text, TouchableOpacity, TouchableNativeFeedback} from 'react-native';
+import {StyleSheet, View, Pressable, Text} from 'react-native';
 
 import FontAwesome from "@expo/vector-icons/FontAwesome";
 import * as ImagePicker from 'expo-image-picker';
 import { useState } from "react";
-import {CameraType} from "expo-image-picker";
+import { CameraType } from "expo-image-picker";
 
 
 const openPhotoLibrary = async () => {
@@ -51,7 +51,7 @@ const openCamera = async () => {
     console.log(action.assets.length);
 }
 
-
+// Todo: This isn't really just a button anymore, maybe rename it to picture menu or something. idk
 export default function Button({ label, theme }) {
     const [submenuOpen, setSubmenuOpen] = useState(false);
 
@@ -59,37 +59,32 @@ export default function Button({ label, theme }) {
         return (
             <View style={[styles.buttonContainer, { borderWidth: 4, borderColor: "#ffd33d", borderRadius: 18 }, submenuOpen && {height: 68*3}]}>
                 <View style={[styles.button, { backgroundColor: "#fff" }]}>
-                    <Pressable
-                        style={[styles.submenuButton, submenuOpen && { backgroundColor: "#aaa", borderTopLeftRadius: 10, borderTopRightRadius: 10 }, !submenuOpen && {height: "100%"}]}
+                    <SubmenuButton
+                        iconName="picture-o"
+                        label={label}
                         onPress={() => setSubmenuOpen(!submenuOpen)}
-                    >
-                        <FontAwesome
-                        name="picture-o"
-                        size={18}
-                        color="#25292e"
-                        style={styles.buttonIcon}
-                        />
-                        <Text style={[styles.buttonLabel, { color: "#25292e" }]}>{label}</Text>
-                    </Pressable>
-                    {submenuOpen && <ButtonSubmenu iconName="file-picture-o" label="Open Photo Library" onPress={openPhotoLibrary} />}
-                    {submenuOpen && <ButtonSubmenu iconName="camera" label="Take a photo" onPress={openCamera} />}
+                        style={[submenuOpen && { backgroundColor: "#aaa", borderTopLeftRadius: 10, borderTopRightRadius: 10 }, !submenuOpen && {height: "100%"}]}
+                    />
+                    {submenuOpen && <SubmenuButton iconName="file-picture-o" label="Open Photo Library" onPress={openPhotoLibrary} />}
+                    {submenuOpen && <SubmenuButton iconName="camera" label="Take a photo" onPress={openCamera} />}
                 </View>
             </View>
         );
     }
 
+    // Fixme: I don't know what to do here.
     return (
     <View style={styles.buttonContainer}>
-        <Pressable style={styles.button} onPress={openImagePickerAsync}>
+        <Pressable style={styles.button} onPress={() => setSubmenuOpen(!submenuOpen)}>
         <Text style={styles.buttonLabel}>{label}</Text>
         </Pressable>
     </View>
     );
 }
 
-function ButtonSubmenu({iconName, label, onPress}) {
+function SubmenuButton({iconName, label, onPress, style}) {
     return (
-        <Pressable style={[styles.submenuButton]} onPress={onPress} >
+        <Pressable style={[styles.submenuButton, style]} onPress={onPress} >
             <FontAwesome
                 name={iconName}
                 size={18}
