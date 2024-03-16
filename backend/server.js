@@ -2,7 +2,7 @@ const dotenv = require('dotenv');
 dotenv.config();
 const express = require('express');
 const multer = require('multer');
-const {ocrSpace} = require('ocr-space-api-wrapper');
+const { ocrSpace } = require('ocr-space-api-wrapper');
 const fs = require('fs');
 const uploadDir = 'uploads/';
 if (!fs.existsSync(uploadDir)) {
@@ -12,16 +12,18 @@ if (!fs.existsSync(uploadDir)) {
 const app = express();
 const PORT = 3000;
 
+// Rooms structure: Maps room ID to room state
+const rooms = new Map();
+
 // Configure multer for image storage
 const storage = multer.diskStorage({
     destination: function(req, file, cb) {
-        cb(null, 'uploads/'); // Ensure this folder exists
+        cb(null, uploadDir); // Ensure this folder exists
     },
     filename: function(req, file, cb) {
         cb(null, file.fieldname + '-' + Date.now() + '.' + file.originalname.split('.').pop());
     }
 });
-
 const upload = multer({ storage: storage });
 
 const lettersFound = new Set();
@@ -81,6 +83,56 @@ app.get('/get-sentence', (req, res) => {
         res.json({ currentSentence: sentence });
     }
 });
+
+// Create a new room
+app.post('/create-room', (req, res) => {
+    const roomId = generateRoomId();
+    rooms.set(roomId, { 
+        lettersFound: new Set(), 
+        currentWord: "", 
+        currentSentence: "", 
+        users: new Set() // Track users in the room
+    });
+    res.json({ roomId });
+});
+
+// Join a room
+app.post('/join-room', (req, res) => {
+    const { roomId, userId } = req.body;
+    if (rooms.has(roomId)) {
+        const room = rooms.get(roomId);
+        room.users.add(userId); // Add user to the room
+        res.json({ success: true });
+    } else {
+        res.status(404).json({ error: 'Room not found' });
+    }
+});
+
+// Leave a room
+app.post('/leave-room', (req, res) => {
+    const { roomId, userId } = req.body;
+    if (rooms.has(roomId)) {
+        const room = rooms.get(roomId);
+        room.users.delete(userId); // Remove user from the room
+        // Consider deleting room if empty
+        if (room.users.size === 0) {
+            rooms.delete(roomId);
+        }
+        res.json({ success: true });
+    } else {
+        res.status(404).json({ error: 'Room not found' });
+    }
+});
+
+
+function generateRoomId(){
+    let roomId = Math.floor(Math.random() * 10000);
+    while(rooms.has(roomId)){
+        roomId = Math.floor(Math.random() * 10000);
+    }
+    rooms.add(roomId);
+    return roomId;  
+}
 
 app.listen(PORT, () => {
     console.log(`Server running on port ${PORT}`);
