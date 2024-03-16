@@ -68,7 +68,7 @@ app.post('/image', upload.single('image'), async (req, res) => {
         const ocrResult = await ocrSpace(imagePath, { apiKey: process.env.OCR_API_KEY });
         // Process and respond as necessary
         // add new letter to lettersFound and send it
-
+        console.log(ocrResult.ParsedResults[0].ParsedText);
         var newLetters = ocrResult.ParsedResults[0].ParsedText.toLowerCase().split('').filter(char => char >= 'a' && char <= 'z');
         for (let i = 0; i < newLetters.length; i++) {
             lettersFound.add(newLetters[i]);
