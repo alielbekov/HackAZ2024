@@ -28,7 +28,7 @@ export const WordProgress = ({foundLetters, setServerResponse}) => {
       {[...word].map((character, index) => {
         const found = foundLetters.find((x) => x === character.toLowerCase()) !== undefined;
         return <Text key={index}
-                     style={[styles.textStyle, found && {color: "white"}, !found && {color: "#aaa"}]}>{character}</Text>;
+                     style={[styles.textStyle, found && {color: "white"}, !found && {color: "#555"}]}>{character}</Text>;
       })}
     </View>
   );
@@ -42,6 +42,6 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
   textStyle: {
-    fontSize: 20,
+    fontSize: 48,
   }
 });
