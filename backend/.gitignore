@@ -1,4 +1,4 @@
-# Logs
+#Logs
 logs
 *.log
 npm-debug.log*
@@ -37,6 +37,9 @@ bower_components
 
 # Compiled binary addons (https://nodejs.org/api/addons.html)
 build/Release
+
+#Uploaded files
+uploads/
 
 # Dependency directories
 node_modules/
