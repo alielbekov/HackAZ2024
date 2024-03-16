@@ -2,58 +2,70 @@ import {StyleSheet, View, Pressable, Text, TouchableOpacity, TouchableNativeFeed
 
 import FontAwesome from "@expo/vector-icons/FontAwesome";
 import * as ImagePicker from 'expo-image-picker';
+import * as FileSystem from 'expo-file-system';
 import { useState } from "react";
 import {CameraType} from "expo-image-picker";
 
 
-const openPhotoLibrary = async () => {
-    // Request media library permissions
-    const libraryPermission = await ImagePicker.requestMediaLibraryPermissionsAsync();
-    if (libraryPermission.status !== 'granted') {
-        alert('Permission to access gallery was denied');
-        return;
-    }
-
-    // Show an action sheet to choose between camera and gallery
-    const action = await ImagePicker.launchImageLibraryAsync({
-        mediaTypes: ImagePicker.MediaTypeOptions.Images,
-        allowsEditing: true,
-        aspect: [4, 3],
-        quality: 1,
-    });
-
-    if (action.canceled) {
-        return;
-    }
-
-    // Here you can handle the selected image URI, display it, or upload it
-    console.log(action.assets.length);
-}
-
-const openCamera = async () => {
-    // Request camera permissions
-    const cameraPermission = await ImagePicker.requestCameraPermissionsAsync();
-    if (cameraPermission.status !== 'granted') {
-        alert('Permission to access camera was denied');
-        return;
-    }
-
-    const action = await ImagePicker.launchCameraAsync({
-        allowsEditing: true, // allow cropping and rotation
-        cameraType: CameraType.back
-    });
-
-    if (action.canceled) {
-        return;
-    }
-
-    // Here you can handle the selected image URI, display it, or upload it
-    console.log(action.assets.length);
-}
 
 
-export default function Button({ label, theme }) {
+
+export default function Button({ label, theme, onImagePicked}) {
     const [submenuOpen, setSubmenuOpen] = useState(false);
+    const handleImagePicked = (uri) => {
+        console.log("sending img uri");
+        
+        onImagePicked(uri); // Update the App component's state with the new image URI
+        setSubmenuOpen(false); // Optionally close the submenu
+    };
+    const openPhotoLibrary = async () => {
+        // Request media library permissions
+        const libraryPermission = await ImagePicker.requestMediaLibraryPermissionsAsync();
+        if (libraryPermission.status !== 'granted') {
+            alert('Permission to access gallery was denied');
+            return;
+        }
+    
+        // Show an action sheet to choose between camera and gallery
+        const action = await ImagePicker.launchImageLibraryAsync({
+            mediaTypes: ImagePicker.MediaTypeOptions.Images,
+            allowsEditing: true,
+            aspect: [4, 3],
+            quality: 1,
+        });
+    
+        
+    
+        if (action.canceled) {
+            return;
+        }
+        // Here you can handle the selected image URI, display it, or upload it
+        // console.log(action);
+        handleImagePicked(action);
+    }
+    
+    const openCamera = async () => {
+        // Request camera permissions
+        console.log("opening cam");
+        const cameraPermission = await ImagePicker.requestCameraPermissionsAsync();
+        if (cameraPermission.status !== 'granted') {
+            alert('Permission to access camera was denied');
+            return;
+        }
+    
+        const action = await ImagePicker.launchCameraAsync({
+            allowsEditing: true, // allow cropping and rotation
+            cameraType: CameraType.back
+        });
+    
+        if (action.canceled) {
+            return;
+        }
+    
+        // Here you can handle the selected image URI, display it, or upload it
+        // console.log(action.assets);
+        handleImagePicked(action);
+    }
 
     if (theme === "primary") {
         return (
