@@ -2,20 +2,25 @@ const dotenv = require('dotenv');
 dotenv.config();
 const express = require('express');
 const multer = require('multer');
-const {ocrSpace} = require('ocr-space-api-wrapper');
+const { ocrSpace } = require('ocr-space-api-wrapper');
 const fs = require('fs');
 const uploadDir = 'uploads/';
+const cors = require('cors');
+const app = express();
+const PORT = 3000;
+
+
 if (!fs.existsSync(uploadDir)) {
     fs.mkdirSync(uploadDir, { recursive: true });
 }
 
-const app = express();
-const PORT = 3000;
+// Rooms structure: Maps room ID to room state
+const rooms = new Map();
 
 // Configure multer for image storage
 const storage = multer.diskStorage({
     destination: function(req, file, cb) {
-        cb(null, 'uploads/'); // Ensure this folder exists
+        cb(null, uploadDir); // Ensure this folder exists
     },
     filename: function(req, file, cb) {
         cb(null, file.fieldname + '-' + Date.now() + '.' + file.originalname.split('.').pop());
@@ -26,23 +31,50 @@ const upload = multer({ storage: storage });
 
 const lettersFound = new Set();
 let currentWord = "";
+let currentSentence = "";
 const wordBank = [
     "aliens", "asteroids", "astronaut", "blackhole", "comet", "constellation", "cosmos", "earth", "eclipse", "galaxy", "gravity", "jupiter", "mars", "mercury", "meteor", "meteorite", "moon", "neptune", "orbit", "planet", "pluto", "rocket", "satellite", "saturn", "shuttle", "solar", "space", "spaceship", "star", "sun", "telescope", "universe", "uranus", "venus", "zodiac"
  ];
 
+const sentenceBank = [
+    "The sun is a star at the center of the Solar System.",
+    "The Solar System consists of the Sun and the objects that orbit it.",
+    "The Moon is Earth's only natural satellite."
+]
+
 app.use(express.json());
 app.use(express.static('public'));
+app.use(cors());
 
 app.post('/image', upload.single('image'), async (req, res) => {
-    if (!req.file) {
-        return res.status(400).json({ error: 'No file uploaded.' });
-    }
-    
     try {
-        const ocrResult = await ocrSpace(req.file.path, { apiKey: process.env.OCR_API_KEY });
+        let imagePath;
+        if (req.file) {
+            imagePath = req.file.path;
+        } else if (req.body.imageUri) {
+            // Fetch image from URI
+            const response = await fetch(req.body.imageUri);
+            if (!response.ok) {
+                return res.status(400).json({ error: 'Failed to fetch image from URI.' });
+            }
+            const buffer = await response.buffer();
+            // Create a temporary file to write the buffer
+            fs.writeFileSync('tempImage', buffer);
+            imagePath = 'tempImage';
+        } else {
+            return res.status(400).json({ error: 'No file uploaded or URI provided.' });
+        }
+
+        const ocrResult = await ocrSpace(imagePath, { apiKey: process.env.OCR_API_KEY });
         // Extract letters from OCR result and add to lettersFound set
+        const lettersFound = new Set();
         const letters = ocrResult.ParsedResults[0].ParsedText.replace(/[^a-zA-Z]/g, '').toLowerCase();
         Array.from(letters).forEach(letter => lettersFound.add(letter));
+
+        // Clean up temporary file if created from URI
+        if (req.body.imageUri) {
+            fs.unlinkSync(imagePath);
+        }
 
         res.json({lettersFound: Array.from(lettersFound)});
     } catch (error) {
@@ -51,6 +83,11 @@ app.post('/image', upload.single('image'), async (req, res) => {
             res.status(500).json({ error: 'OCR service error.' });
         } else {
             res.status(500).json({ error: error.message });
+        }
+
+        // Clean up temporary file in case of an error
+        if (req.body && req.body.imageUri) {
+            fs.unlinkSync('tempImage');
         }
     }
 });
@@ -64,6 +101,66 @@ app.get('/get-word', (req, res) => {
         res.json({ currentWord: word });
     }
 });
+
+app.get('/get-sentence', (req, res) => {  
+    if(currentSentence !== ""){
+        res.json({ currentSentence });
+    }else{
+        let sentence = sentenceBank[Math.floor(Math.random() * sentenceBank.length)];
+        currentSentence = sentence;
+        res.json({ currentSentence: sentence });
+    }
+});
+
+// Create a new room
+app.post('/create-room', (req, res) => {
+    const roomId = generateRoomId();
+    rooms.set(roomId, { 
+        lettersFound: new Set(), 
+        currentWord: "", 
+        currentSentence: "", 
+        users: new Set() // Track users in the room
+    });
+    res.json({ roomId });
+});
+
+// Join a room
+app.post('/join-room', (req, res) => {
+    const { roomId, userId } = req.body;
+    if (rooms.has(roomId)) {
+        const room = rooms.get(roomId);
+        room.users.add(userId); // Add user to the room
+        res.json({ success: true });
+    } else {
+        res.status(404).json({ error: 'Room not found' });
+    }
+});
+
+// Leave a room
+app.post('/leave-room', (req, res) => {
+    const { roomId, userId } = req.body;
+    if (rooms.has(roomId)) {
+        const room = rooms.get(roomId);
+        room.users.delete(userId); // Remove user from the room
+        // Consider deleting room if empty
+        if (room.users.size === 0) {
+            rooms.delete(roomId);
+        }
+        res.json({ success: true });
+    } else {
+        res.status(404).json({ error: 'Room not found' });
+    }
+});
+
+
+function generateRoomId(){
+    let roomId = Math.floor(Math.random() * 10000);
+    while(rooms.has(roomId)){
+        roomId = Math.floor(Math.random() * 10000);
+    }
+    rooms.add(roomId);
+    return roomId;  
+}
 
 app.listen(PORT, () => {
     console.log(`Server running on port ${PORT}`);

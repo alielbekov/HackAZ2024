@@ -1,4 +1,4 @@
-import { StyleSheet, Text, View, Image, StatusBar, Platform, SafeAreaView  } from 'react-native';
+import { StyleSheet, Text, View, Image, StatusBar, SafeAreaView  } from 'react-native';
 import { useState } from "react";
 
 import Button from './components/Button';
@@ -69,7 +69,7 @@ export default function App() {
             <Text style={{padding:5}}>Server Response: {serverResponse}</Text>
         </View>
         <View style={styles.footerContainer}>
-        <Button theme="primary" label="Choose a photo" onImagePicked={handleImage}/>
+        <Button theme="primary" label="Take a photo" onImagePicked={handleImage}/>
         </View>
     </SafeAreaView>
     );
