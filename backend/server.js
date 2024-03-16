@@ -16,6 +16,8 @@ if (!fs.existsSync(uploadDir)) {
 
 // Rooms structure: Maps room ID to room state
 const rooms = new Map();
+const lettersFound = new Set();
+
 
 // Configure multer for image storage
 const storage = multer.diskStorage({
@@ -29,7 +31,6 @@ const storage = multer.diskStorage({
 
 const upload = multer({ storage: storage });
 
-const lettersFound = new Set();
 let currentWord = "";
 let currentSentence = "";
 const wordBank = [
@@ -42,55 +43,38 @@ const sentenceBank = [
     "The Moon is Earth's only natural satellite."
 ]
 
-app.use(express.json());
+app.use(express.json({limit: '50mb'})); // Increased limit if you're expecting large images
+app.use(express.urlencoded({ extended: true, limit: '50mb' }));
 app.use(express.static('public'));
 app.use(cors());
 
 app.post('/image', upload.single('image'), async (req, res) => {
+    console.log('Image uploaded');
     try {
         let imagePath;
         if (req.file) {
             imagePath = req.file.path;
-        } else if (req.body.imageUri) {
-            // Fetch image from URI
-            const response = await fetch(req.body.imageUri);
-            if (!response.ok) {
-                return res.status(400).json({ error: 'Failed to fetch image from URI.' });
-            }
-            const buffer = await response.buffer();
-            // Create a temporary file to write the buffer
-            fs.writeFileSync('tempImage', buffer);
-            imagePath = 'tempImage';
+        } else if (req.body.imageBase64) {
+            // Decode Base64 image
+            const base64Data = req.body.imageBase64.split(';base64,').pop();
+            imagePath = `${uploadDir}image-${Date.now()}.jpg`;
+            fs.writeFileSync(imagePath, base64Data, {encoding: 'base64'});
         } else {
-            return res.status(400).json({ error: 'No file uploaded or URI provided.' });
+            return res.status(400).json({ error: 'No file uploaded, URI, or Base64 data provided.' });
         }
 
+        // OCR or other processing can go here
+        console.log('Image path:', imagePath);
         const ocrResult = await ocrSpace(imagePath, { apiKey: process.env.OCR_API_KEY });
-        // Extract letters from OCR result and add to lettersFound set
-        const lettersFound = new Set();
-        const letters = ocrResult.ParsedResults[0].ParsedText.replace(/[^a-zA-Z]/g, '').toLowerCase();
-        Array.from(letters).forEach(letter => lettersFound.add(letter));
-
-        // Clean up temporary file if created from URI
-        if (req.body.imageUri) {
-            fs.unlinkSync(imagePath);
-        }
-
-        res.json({lettersFound: Array.from(lettersFound)});
+        // Process and respond as necessary
+        console.log('OCR result:', ocrResult);
+        res.json({ message: 'Image processed', data: ocrResult });
     } catch (error) {
-        console.error('OCR Error:', error);
-        if (error.statusCode === 500) {
-            res.status(500).json({ error: 'OCR service error.' });
-        } else {
-            res.status(500).json({ error: error.message });
-        }
-
-        // Clean up temporary file in case of an error
-        if (req.body && req.body.imageUri) {
-            fs.unlinkSync('tempImage');
-        }
+        console.error('Error:', error);
+        res.status(500).json({ error: 'Internal server error' });
     }
 });
+
 
 app.get('/get-word', (req, res) => {
     if(currentWord !== ""){
