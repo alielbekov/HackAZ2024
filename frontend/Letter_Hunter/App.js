@@ -2,13 +2,13 @@ import { StyleSheet, Text, View, Image, StatusBar, SafeAreaView  } from 'react-n
 import { useState } from "react";
 
 import Button from './components/Button';
+import {WordProgress} from "./components/WordProgress";
 
 const PlaceholderImage = require('./assets/road-1072821_1920.jpg');
 export default function App() {
     const [imageUri, setImageUri] = useState(null);
     const [serverResponse, setServerResponse] = useState('');
-    const [currentWord, setCurrentWord] = useState('');
-    
+
     const uploadImage = async (uri) => {
         // console.log(uri);
         const link = 'http://137.184.74.25:3000';
@@ -50,7 +50,7 @@ export default function App() {
             <Text style={{color:'white'}}>Letter Hunter</Text>
         </View>
         <View style={styles.currentWord}>
-            <Text style={styles.word}>Word: {currentWord}</Text>
+            <WordProgress foundLetters={['a', 'p']} setServerResponse={setServerResponse} />
         </View>
         <View style={styles.imageContainer}> 
             <Image 
@@ -107,7 +107,6 @@ const styles = StyleSheet.create({
   currentWord: {
     flex: 1/5,
     minWidth: 200,
-    backgroundColor:'white',
   },
   word: {
     fontSize:30,
