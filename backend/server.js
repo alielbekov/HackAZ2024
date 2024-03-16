@@ -49,12 +49,12 @@ app.use(express.static('public'));
 app.use(cors());
 
 app.post('/image', upload.single('image'), async (req, res) => {
-    console.log('Image uploaded');
     try {
         let imagePath;
         if (req.file) {
             imagePath = req.file.path;
         } else if (req.body.imageBase64) {
+            console.log("Base64 image")
             // Decode Base64 image
             const base64Data = req.body.imageBase64.split(';base64,').pop();
             imagePath = `${uploadDir}image-${Date.now()}.jpg`;
