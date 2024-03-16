@@ -45,7 +45,7 @@ export default function App() {
     };
 
     const handleImage = (uri) => {
-        setImageUri(uri);
+        setImageUri(uri.assets[0].uri);
         uploadImage(uri); // Additionally upload the image
     };
 

@@ -64,25 +64,18 @@ export default function Button({ label, theme, onImagePicked}) {
 
     if (theme === "primary") {
         return (
-            <View style={[styles.buttonContainer, { borderWidth: 4, borderColor: "#ffd33d", borderRadius: 18 }, submenuOpen && {height: 68*3}]}>
-                <View style={[styles.button, { backgroundColor: "#fff" }]}>
-                    <Pressable
-                        style={[styles.submenuButton, submenuOpen && { backgroundColor: "#aaa", borderTopLeftRadius: 10, borderTopRightRadius: 10 }, !submenuOpen && {height: "100%"}]}
-                        onPress={() => setSubmenuOpen(!submenuOpen)}
-                    >
-                        <FontAwesome
-                        name="picture-o"
-                        size={18}
-                        color="#25292e"
-                        style={styles.buttonIcon}
-                        />
-                        <Text style={[styles.buttonLabel, { color: "#25292e" }]}>{label}</Text>
-                    </Pressable>
-                    {submenuOpen && <ButtonSubmenu iconName="file-picture-o" label="Open Photo Library" onPress={openPhotoLibrary} />}
-                    {submenuOpen && <ButtonSubmenu iconName="camera" label="Take a photo" onPress={openCamera} />}
-                </View>
+            <View style={[styles.buttonContainer, {borderWidth: 4, borderColor: "#ffd33d", borderRadius: 18}]}>
+              <Pressable style={[styles.button, {backgroundColor: "#fff"}]} onPress={openCamera}>
+                <FontAwesome
+                    name="camera"
+                    size={18}
+                    color="#25292e"
+                    style={styles.buttonIcon}
+                />
+                <Text style={[styles.buttonLabel, {color: "#25292e"}]}>{label}</Text>
+              </Pressable>
             </View>
-        );
+          );
     }
 
   if (theme === "primary") {
