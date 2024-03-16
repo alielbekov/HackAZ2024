@@ -49,12 +49,12 @@ app.use(express.static('public'));
 app.use(cors());
 
 app.post('/image', upload.single('image'), async (req, res) => {
-    console.log('Image uploaded');
     try {
         let imagePath;
         if (req.file) {
             imagePath = req.file.path;
         } else if (req.body.imageBase64) {
+            console.log("Base64 image")
             // Decode Base64 image
             const base64Data = req.body.imageBase64.split(';base64,').pop();
             imagePath = `${uploadDir}image-${Date.now()}.jpg`;
@@ -67,8 +67,15 @@ app.post('/image', upload.single('image'), async (req, res) => {
         console.log('Image path:', imagePath);
         const ocrResult = await ocrSpace(imagePath, { apiKey: process.env.OCR_API_KEY });
         // Process and respond as necessary
-        console.log('OCR result:', ocrResult);
-        res.json({ message: 'Image processed', data: ocrResult });
+        // add new letter to lettersFound and send it
+
+        var newLetters = ocrResult.ParsedResults[0].ParsedText.split('');
+        for (let i = 0; i < newLetters.length; i++) {
+            lettersFound.add(newLetters[i]);
+        }
+
+        
+        res.json({ lettersFound: Array.from(lettersFound) });
     } catch (error) {
         console.error('Error:', error);
         res.status(500).json({ error: 'Internal server error' });
