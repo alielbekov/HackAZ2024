@@ -1,7 +1,7 @@
 import {StyleSheet, Text, View} from "react-native";
 import {useEffect, useState} from "react";
-import stringifySafe from "@expo/metro-runtime/build/error-overlay/modules/stringifySafe";
 import {fetchGetWord} from "../api/endpoints";
+import Toast from "react-native-toast-message";
 
 export const WordProgress = ({foundLetters, setServerResponse, roomId}) => {
   const [word, setWord] = useState("Placeholder");
@@ -13,18 +13,21 @@ export const WordProgress = ({foundLetters, setServerResponse, roomId}) => {
         return; // Early return if roomId is not available
       }
 
-      try {
-        const response = await fetchGetWord(roomId);
-        if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`);
-        }
-        const data = await response.json();
-        setWord(data.currentWord);
-      } catch (error) {
-        console.error('Fetch error:', error);
-        setServerResponse(`Error fetching word: ${error.toString()}`);
+      const response = await fetchGetWord(roomId);
+      if (!response.ok) {
+        const error = new Error(`HTTP error! status: ${response.status}`);
 
+        console.error('Fetch error:', error);
+        Toast.show({
+          type: "error",
+          text1: `Error fetching word: ${error.toString()}`
+        });
+
+        return;
       }
+
+      const data = await response.json();
+      setWord(data.currentWord);
     };
 
     fetchWord();
