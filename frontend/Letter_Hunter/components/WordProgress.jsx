@@ -1,9 +1,9 @@
 import {StyleSheet, Text, View} from "react-native";
 import {useEffect, useState} from "react";
 import {fetchGetWord} from "../api/endpoints";
-import Toast from "react-native-toast-message";
+import {toastError, toastErrorWithMsg} from "./Toasts";
 
-export const WordProgress = ({foundLetters, setServerResponse, roomId}) => {
+export const WordProgress = ({foundLetters, roomId}) => {
   const [word, setWord] = useState("Placeholder");
   useEffect(() => {
     const fetchWord = async () => {
@@ -13,16 +13,14 @@ export const WordProgress = ({foundLetters, setServerResponse, roomId}) => {
         return; // Early return if roomId is not available
       }
 
-      const response = await fetchGetWord(roomId);
+      const response = await fetchGetWord(roomId).catch(toastError);
+
+      if (response === undefined) {
+        return;
+      }
+
       if (!response.ok) {
-        const error = new Error(`HTTP error! status: ${response.status}`);
-
-        console.error('Fetch error:', error);
-        Toast.show({
-          type: "error",
-          text1: `Error fetching word: ${error.toString()}`
-        });
-
+        toastErrorWithMsg("Error fetching word", new Error(`HTTP error! status: ${response.status}`));
         return;
       }
 
@@ -31,7 +29,7 @@ export const WordProgress = ({foundLetters, setServerResponse, roomId}) => {
     };
 
     fetchWord();
-  }, [roomId, setServerResponse]); // Use roomId in the dependency array
+  }, [roomId]); // Use roomId in the dependency array
 
   return (
     <View style={styles.wordContainer}>

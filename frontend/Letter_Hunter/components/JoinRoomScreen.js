@@ -1,6 +1,7 @@
 import {Pressable, SafeAreaView, StatusBar, StyleSheet, Text, TextInput, View} from "react-native";
 import {useState} from "react";
 import {getJoinRoom} from "../api/endpoints";
+import {toastError, toastErrorWithMsg} from "./Toasts";
 
 export const JoinRoomScreen = ({ navigationRef }) => {
   const [roomId, setRoomId] = useState("");
@@ -11,10 +12,15 @@ export const JoinRoomScreen = ({ navigationRef }) => {
   };
 
   const joinARoom = async () => {
-    const res = await getJoinRoom(roomId).catch((error) => { console.log(error); });
+    const res = await getJoinRoom(roomId).catch(toastError);
 
-    if (res === undefined || res.status !== 200) {
-      return; // Fixme: report error.
+    if (res === undefined) {
+      return;
+    }
+
+    if (!res.ok) {
+      toastErrorWithMsg("Error starting game", new Error(`HTTP error! status: ${res.status}`));
+      return;
     }
 
     let data = await res.json();
