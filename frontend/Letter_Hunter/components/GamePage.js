@@ -8,6 +8,7 @@ const PlaceholderImage = require('../assets/road-1072821_1920.jpg');
 import socket from '../socket/socketService'
 import Toast from "react-native-toast-message";
 import {toastError, toastErrorWithMsg} from "./Toasts";
+import {readAsStringAsync} from "expo-file-system";
 
 export default function GamePage({route}) {
     const [imageUri, setImageUri] = useState(null);
@@ -119,9 +120,20 @@ export default function GamePage({route}) {
 
 
 
-    const handleImage = (images) => {
+    const handleImage = async (images) => {
       setImageUri(images.assets[0].uri);
-      uploadImage(images.assets[0].uri); // Additionally upload the image
+      const uri = images.assets[0].uri;
+
+      if (uri.includes("file://")) {
+        console.log(uri);
+        await readAsStringAsync(uri, {
+          encoding: "base64"
+        })
+          .then((data) => uploadImage(`data:image/jpeg;base64,${data}`))
+          .catch(toastError);
+      } else {
+        await uploadImage(uri);
+      }
     };
 
 
