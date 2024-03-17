@@ -1,7 +1,7 @@
 import {ImageBackground, Pressable, SafeAreaView, StatusBar, StyleSheet, Text, TouchableOpacity, View} from "react-native";
 import {fetchStartIds} from "../api/endpoints";
 import {globalStyles} from "../styles/globalStyles";
-import { globalAgent } from "http";
+
 
 const backgroundImage = require('../assets/background-image.jpg');
 export const LandingScreen = ({navigationRef}) => {

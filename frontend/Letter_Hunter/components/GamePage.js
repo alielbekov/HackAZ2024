@@ -6,6 +6,7 @@ import Button from './Button';
 import { WordProgress } from "./WordProgress";
 import {postImage, getFoundLetters} from "../api/endpoints";
 const PlaceholderImage = require('../assets/road-1072821_1920.jpg');
+import socket from '../socket/socketService'
 
 export default function GamePage({route}) {
     const [imageUri, setImageUri] = useState(null);
@@ -13,6 +14,29 @@ export default function GamePage({route}) {
     const [foundLetters, setFoundLetters] = useState([]);
     const [roomId, setRoomId] = useState('');
     const [userId, setUserId] = useState('');
+
+    useEffect(() => {
+      const handleNewPlayer = (userId) => {
+          console.log('New Player joined:', userId);
+          // Handle new player joining the game
+      };
+      
+      const handleLettersUpdated = (data) => {
+          console.log('Found letters updated:', data);
+          setFoundLetters(data); // Assuming the server sends an array of found letters
+      };
+
+      // Set up socket event listeners
+      socket.on('newPlayer', handleNewPlayer);
+      socket.on('lettersUpdated', handleLettersUpdated);
+
+      // Cleanup function
+      return () => {
+          socket.off('newPlayer', handleNewPlayer);
+          socket.off('lettersUpdated', handleLettersUpdated);
+      };
+  }, []);
+
 
     useEffect(() => {
       if (route.params) {
@@ -28,6 +52,7 @@ export default function GamePage({route}) {
       // Only call updateFoundLetters if roomId is not null or undefined
       if (roomId) {
         updateFoundLetters();
+        socket.emit('joinRoom', { roomId, userId });
       }
     }, [roomId]); // Depend on roomId to ensure it's set before calling
     const copyToClipboard = () => {
@@ -46,11 +71,14 @@ export default function GamePage({route}) {
           // if (!response.ok) {
           //   throw new Error(`Server responded with ${response.status}: ${response.statusText}`);
           // }
+          if (response.status !== 200) {
+            throw new Error(`Server responded with ${response.status}: ${response.statusText}`);
+          }else{
+            console.log('Image uploaded successfully');
+            socket.emit('lettersUpdated', { roomId });
+          }
     
-          await response.json().then((data) => {
-            setFoundLetters(data.lettersFound);
-            setServerResponse('Letters found: ' + data.lettersFound.join(', '));
-          });
+          
         } catch (error) {
           console.error('Error uploading image:', error);
           setServerResponse('Error uploading image:. ' + error.message);

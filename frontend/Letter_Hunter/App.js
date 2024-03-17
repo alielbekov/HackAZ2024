@@ -43,7 +43,7 @@ export default function App() {
             },
             headerLeft: () => (
               <TouchableOpacity onPress={() => navigation.goBack()}
-              style={{borderRadius:17, backgroundColor: '#fb5607', padding:10, flexDirection: 'row'}}>
+              style={{borderRadius:17, backgroundColor: '#fb5607', padding:10, margin:"10px",  flexDirection: 'row'}}>
                 <Image source={require('./assets/leave-room.png')} style={{width: 20, height: 25, backgroundColor:'fb5607', marginRight:2}}/>
                 <Text style={[{fontSize:18, color: '#ffe8d6'}, globalStyles.text]}>Leave Room</Text>
               </TouchableOpacity>

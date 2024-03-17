@@ -7,7 +7,17 @@ const fs = require('fs');
 const uploadDir = 'uploads/';
 const cors = require('cors');
 const { v4: uuidv4 } = require('uuid');
+const http = require('http');
+const { Server } = require("socket.io");
 const app = express();
+const server = http.createServer(app); // Create HTTP server from Express app
+const io = new Server(server, {
+    cors: {
+        origin: "*", // Adjust according to your security requirements
+        methods: ["GET", "POST"]
+    }
+});
+
 const PORT = 3000;
 
 
@@ -17,8 +27,6 @@ if (!fs.existsSync(uploadDir)) {
 
 // Rooms structure: Maps room ID to room state
 const rooms = new Map();
-const lettersFound = new Set();
-
 
 // Configure multer for image storage
 const storage = multer.diskStorage({
@@ -70,9 +78,10 @@ app.post('/image', upload.single('image'), async (req, res) => {
             // add new letter to lettersFound and send it
             const letters = ocrResult.ParsedResults[0].ParsedText.replace(/[^a-zA-Z]/g, '').toLowerCase().split('');
             letters.forEach(letter => room.lettersFound.add(letter));
+            // no need to send room.lettersFound, it's already updated
+            res.status(200).json({status: 'success'});
 
-            // TODO: need to setup socket.io to send the letters to the clients in the room
-            res.json({ lettersFound: Array.from(room.lettersFound)});
+            
         } catch (error) {
             console.error('Error:', error);
             res.status(500).json({ error: 'Internal server error' });
@@ -180,6 +189,32 @@ function generateRoomId(){
     return roomId;  
 }
 
-app.listen(PORT, () => {
-    console.log(`Server running on port ${PORT}`);
+io.on('connection', (socket) => {
+    console.log('A user connected', socket.id);
+
+    // Join a specific room
+    socket.on('joinRoom', ({ roomId, userId }) => {
+        console.log(`User ${userId} joined room ${roomId}`);
+        // inform all the users
+        io.to(roomId).emit('newPlayer', userId);
+        socket.join(roomId);
+
+    });
+    socket.on('lettersUpdated', ({ roomId }) => {
+        console.log(`lettersUpdated ${roomId}`);
+    
+        io.to(roomId).emit('lettersUpdated', Array.from(rooms.get(roomId).lettersFound));
+    });
+
+    // Handling disconnection
+    socket.on('disconnect', () => {
+        console.log('User disconnected', socket.id);
+    });
+    
+    // More event handlers here
 });
+
+server.listen(PORT, () => {
+    console.log(`Server running on port ${PORT}`);
+  });
+  
