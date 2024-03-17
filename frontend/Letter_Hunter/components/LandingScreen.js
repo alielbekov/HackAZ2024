@@ -5,7 +5,7 @@ export const LandingScreen = ({navigationRef}) => {
     <SafeAreaView style={styles.container}>
       <StatusBar backgroundColor='#25292e'/>
       <View style={styles.logoContainer}>
-        <Text style={{color: "white"}}>Letter Hunt</Text>
+        <Text style={{color: "white", fontSize: 48}}>Letter Hunt</Text>
       </View>
       <View style={styles.buttonContainer}>
         <Pressable style={[styles.button, {backgroundColor: "#FFF000"}]} onPress={() => navigationRef.navigate("Game")}>
