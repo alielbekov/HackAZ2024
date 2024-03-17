@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { StyleSheet, Text, View, Image, StatusBar, TouchableOpacity, SafeAreaView, Alert } from 'react-native';
 import Clipboard from '@react-native-clipboard/clipboard'; // Updated import
@@ -54,13 +55,14 @@ export default function GamePagePage({route}) {
           setServerResponse('Error uploading image:. ' + error.message);
         }
       };
-    
+
 
 
     const handleImage = (images) => {
     setImageUri(images.assets[0].uri);
     uploadImage(images.assets[0].uri); // Additionally upload the image
     };
+
 
     return (
       <View style={styles.container}>
@@ -87,6 +89,7 @@ export default function GamePagePage({route}) {
               <Button theme="primary" label="Take a photo" onImagePicked={handleImage} />
           </View>
       </View>
+
   );
 }
 

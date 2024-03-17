@@ -1,11 +1,13 @@
 import {StyleSheet, Text, View} from "react-native";
 import {useEffect, useState} from "react";
 import stringifySafe from "@expo/metro-runtime/build/error-overlay/modules/stringifySafe";
+import {fetchGetWord} from "../api/endpoints";
 
 export const WordProgress = ({foundLetters, setServerResponse, roomId}) => {
   const [word, setWord] = useState("Placeholder");
   useEffect(() => {
     const fetchWord = async () => {
+
       console.log("Attempting to fetch word with roomId:", roomId); // Debugging log
       if (!roomId) {
         console.log("No roomId available, skipping fetch");
@@ -22,6 +24,7 @@ export const WordProgress = ({foundLetters, setServerResponse, roomId}) => {
       } catch (error) {
         console.error('Fetch error:', error);
         setServerResponse(`Error fetching word: ${error.toString()}`);
+
       }
     };
   
