@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import {StyleSheet, Text, View, Image, StatusBar, TouchableOpacity, SafeAreaView} from 'react-native';
-import Clipboard from '@react-native-clipboard/clipboard'; // Updated import
+// import Clipboard from '@react-native-clipboard/clipboard'; // Updated import
 import Button from './Button';
 import { WordProgress } from "./WordProgress";
 import {postImage, getFoundLetters} from "../api/endpoints";
@@ -63,7 +63,7 @@ export default function GamePage({route}) {
       }
     }, [roomId]); // Depend on roomId to ensure it's set before calling
     const copyToClipboard = () => {
-        Clipboard.setString(roomId);
+        // Clipboard.setString(roomId);
         Toast.show({
           type: "success",
           text1: 'Copied',

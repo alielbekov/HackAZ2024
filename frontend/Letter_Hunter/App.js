@@ -9,6 +9,7 @@ import AppLoading from 'expo-app-loading';
 import {useFonts, Chewy_400Regular} from '@expo-google-fonts/chewy';
 import {globalStyles} from './styles/globalStyles';
 import Toast from "react-native-toast-message";
+import {WaitingScreen} from "./components/WaitingScreen";
 
 const Stack = createNativeStackNavigator();
 export default function App() {
@@ -31,6 +32,9 @@ export default function App() {
         </Stack.Screen>
         <Stack.Screen name="Join">
           {() => <JoinRoomScreen navigationRef={navigationRef}/>}
+        </Stack.Screen>
+        <Stack.Screen name="Wait">
+          {(props) => <WaitingScreen navigationRef={navigationRef} route={props.route}/>}
         </Stack.Screen>
         <Stack.Screen
           name="Game"

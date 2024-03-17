@@ -8,7 +8,7 @@ export const JoinRoomScreen = ({ navigationRef }) => {
 
   // Don't allow call to navigate in async function.
   const callNavigate = (response) => {
-    navigationRef.navigate("Game", response);
+    navigationRef.navigate("Wait", response);
   };
 
   const joinARoom = async () => {
@@ -34,7 +34,14 @@ export const JoinRoomScreen = ({ navigationRef }) => {
         <Text style={{color: "white", fontSize: 48}}>Join a room</Text>
       </View>
       <View style={styles.buttonContainer}>
-        <TextInput style={styles.textInput} placeholder="Type room id here" onChangeText={setRoomId}/>
+        <TextInput
+          style={styles.textInput}
+          placeholder="Type room id here"
+          value={roomId}
+          onChangeText={(value) => {
+            setRoomId(value.toUpperCase());
+          }}
+        />
       </View>
       <View style={styles.buttonContainer}>
         <Pressable style={[styles.button, {backgroundColor: "#FFF000"}]} onPress={joinARoom}>

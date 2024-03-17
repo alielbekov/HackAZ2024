@@ -5,6 +5,10 @@ import {toastError, toastErrorWithMsg} from "./Toasts";
 
 const backgroundImage = require('../assets/background-image.jpg');
 export const LandingScreen = ({navigationRef}) => {
+    // Don't allow call to navigate in async function.
+    const callNavigate = (response) => {
+        navigationRef.navigate("Wait", response);
+    };
 
     const handleStart = async () => {
         const res = await fetchStartIds().catch(toastError);
@@ -15,7 +19,7 @@ export const LandingScreen = ({navigationRef}) => {
         }
 
         const data = await res.json();
-        navigationRef.navigate("Game", data);
+        callNavigate(data);
     }
     
     return (
