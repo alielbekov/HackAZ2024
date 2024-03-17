@@ -5,6 +5,7 @@ const multer = require('multer');
 const { ocrSpace } = require('ocr-space-api-wrapper');
 const fs = require('fs');
 const uploadDir = 'uploads/';
+const path = require('path');
 const cors = require('cors');
 const { v4: uuidv4 } = require('uuid');
 const http = require('http');
@@ -19,6 +20,7 @@ const io = new Server(server, {
 });
 
 const PORT = 3000;
+const publicUrlBase = 'http://localhost:3000/uploads/'
 
 
 if (!fs.existsSync(uploadDir)) {
@@ -31,16 +33,25 @@ const rooms = new Map();
 // Configure multer for image storage
 const storage = multer.diskStorage({
     destination: function(req, file, cb) {
-        cb(null, uploadDir); // Ensure this folder exists
+        // Assuming roomId is available in req.body or as a URL parameter. Adjust as necessary.
+        const roomId = req.body.roomId || req.params.roomId;
+        if (!roomId) {
+            return cb(new Error('Room ID is missing'), false);
+        }
+        const roomUploadDir = `${uploadDir}${roomId}/`;
+        if (!fs.existsSync(roomUploadDir)) {
+            fs.mkdirSync(roomUploadDir, { recursive: true });
+        }
+        cb(null, roomUploadDir);
     },
     filename: function(req, file, cb) {
+        // Generate a unique file name as before
         cb(null, file.fieldname + '-' + Date.now() + '.' + file.originalname.split('.').pop());
     }
 });
 
-const upload = multer({ storage: storage });
 
-let currentWord = "";
+const upload = multer({ storage: storage });
 const wordBank = [
     "abcdefghijklmnopqrstuvwxyz"
  ];
@@ -50,6 +61,7 @@ const wordBank = [
 app.use(express.json({limit: '50mb'})); // Increased limit if you're expecting large images
 app.use(express.urlencoded({ extended: true, limit: '50mb' }));
 app.use(express.static('public'));
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 app.use(cors());
 
 app.post('/image', upload.single('image'), async (req, res) => {
@@ -66,7 +78,8 @@ app.post('/image', upload.single('image'), async (req, res) => {
             } else if (req.body.imageBase64) {
                 // Decode Base64 image
                 const base64Data = req.body.imageBase64.split(';base64,').pop();
-                imagePath = `${uploadDir}image-${Date.now()}.jpg`;
+                imagePath = `${uploadDir}${roomId}-${Date.now()}.jpg`;
+                console.log('Image path:', imagePath);
                 fs.writeFileSync(imagePath, base64Data, {encoding: 'base64'});
             } else {
                 return res.status(400).json({ error: 'No file uploaded, URI, or Base64 data provided.' });
@@ -78,10 +91,10 @@ app.post('/image', upload.single('image'), async (req, res) => {
             // add new letter to lettersFound and send it
             const letters = ocrResult.ParsedResults[0].ParsedText.replace(/[^a-zA-Z]/g, '').toLowerCase().split('');
             letters.forEach(letter => room.lettersFound.add(letter));
-            // no need to send room.lettersFound, it's already updated
-            res.status(200).json({status: 'success'});
 
+            const gameStatus  = isGameOver(room.lettersFound, room.currentWord);
             
+            res.status(200).json({status: 'success', isGameOver: gameStatus});
         } catch (error) {
             console.error('Error:', error);
             res.status(500).json({ error: 'Internal server error' });
@@ -148,6 +161,19 @@ app.get("/join/:roomID", (req, res) => {
 });
 
 
+async function getImagesForTheRoom(roomId){
+    const images = fs.readdirSync(uploadDir).filter(fileName => {
+        // Filter files starting with the roomId
+        return fileName.startsWith(roomId + '-'); // Assuming a naming convention like 'roomId-filename.ext'
+    }).map(fileName => {
+        // Generate a URL for each filtered image
+        return `${publicUrlBase}${fileName}`;
+    });
+
+    return images;
+
+}
+
 // Create a new room
 app.post('/create-room', (req, res) => {
     const roomId = generateRoomId();
@@ -192,6 +218,17 @@ function generateAlphanumericId() {
     return id;
 }
 
+function isGameOver(lettersFound, currentWord){
+    let gameStatus = true;
+    for (let i = 0; i < currentWord.length; i++) {
+        if (!lettersFound.has(currentWord[i])) {
+            gameStatus = false;
+            break;
+        }
+    }
+    return gameStatus;
+}
+
 io.on('connection', (socket) => {
     console.log('A user connected', socket.id);
 
@@ -199,6 +236,8 @@ io.on('connection', (socket) => {
     socket.on('joinRoom', ({ roomId, userId }) => {
         console.log(`User ${userId} joined room ${roomId}`);
         // inform all the users
+        //get all the userIDs in the room
+
         io.to(roomId).emit('newPlayer', userId);
         socket.join(roomId);
 
@@ -207,6 +246,11 @@ io.on('connection', (socket) => {
         console.log(`lettersUpdated ${roomId}`);
     
         io.to(roomId).emit('lettersUpdated', Array.from(rooms.get(roomId).lettersFound));
+    });
+
+    socket.on('gameOver', async ({ roomId }) => {
+        const imagesList = await getImagesForTheRoom(roomId);
+        io.to(roomId).emit('gameOver', { imagesList });
     });
 
     // Handling disconnection

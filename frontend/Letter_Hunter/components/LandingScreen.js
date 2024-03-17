@@ -2,7 +2,6 @@ import {ImageBackground, Pressable, SafeAreaView, StatusBar, StyleSheet, Text, T
 import {fetchStartIds} from "../api/endpoints";
 import {globalStyles} from "../styles/globalStyles";
 
-
 const backgroundImage = require('../assets/background-image.jpg');
 export const LandingScreen = ({navigationRef}) => {
 
