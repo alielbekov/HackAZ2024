@@ -85,13 +85,20 @@ app.post('/image', upload.single('image'), async (req, res) => {
 });
 
 
-app.get('/get-word', (req, res) => {
-    if(currentWord !== ""){
-        res.json({ currentWord });
+app.get('/get-word/:roomId', (req, res) => {
+    const roomId = req.params.roomId;
+    console.log("get-word", roomId);
+    if (rooms.has(roomId)) {
+        const room = rooms.get(roomId);
+        if (room.currentWord !== "") {
+            res.json({ currentWord: room.currentWord });
+        } else {
+            let word = wordBank[Math.floor(Math.random() * wordBank.length)];
+            room.currentWord = word;
+            res.json({ currentWord: word });
+        }
     }else{
-        let word = wordBank[Math.floor(Math.random() * wordBank.length)];
-        currentWord = word;
-        res.json({ currentWord: word });
+        res.status(404).json({ error: 'Room not found' });
     }
 });
 
@@ -100,6 +107,7 @@ app.get("/start", (req, res) => {
     // new user ID every time the game starts
     const userId = uuidv4();
     const roomId = uuidv4();
+    console.log("start", userId, roomId);
     rooms.set(roomId, {
         lettersFound: new Set(),
         currentWord: "abcdefghijklmnopqrstuvwxyz",

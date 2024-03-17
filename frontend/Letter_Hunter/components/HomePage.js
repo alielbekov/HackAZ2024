@@ -2,11 +2,17 @@ import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 
 const HomePage = ({ navigation }) => {
-  const handlePlaySoloPress = () => {
-    // Handle Play Solo button press
-    console.log('Play Solo pressed');
-    // For navigation: navigation.navigate('YourSoloGamePage');
-    navigation.navigate('Game Page');
+  const handlePlaySoloPress = async () => {
+      // Fetch request to the server to get room and user IDs
+  const response = await fetch('http://localhost:3000/start'); // Ensure correct port number
+  const data = await response.json();
+
+  // Extracting room ID and user ID from response
+  const { roomId, userId } = data;
+
+  // Navigate to Game Page with room ID and user ID
+  navigation.navigate('Game Page', { roomId, userId });
+
   };
 
   const handleJoinRoomPress = () => {
