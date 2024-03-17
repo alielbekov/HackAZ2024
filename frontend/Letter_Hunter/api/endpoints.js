@@ -20,12 +20,6 @@ export const postImage = async (data) => {
   });
 };
 
-export const postJoinRoom = async (data) => {
-  return fetch(serverLink + "/join-room", {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify(data),
-  });
+export const getJoinRoom = async (roomId) => {
+  return fetch(serverLink + `/join/${roomId}`);
 };
