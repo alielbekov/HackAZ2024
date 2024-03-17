@@ -1,7 +1,8 @@
 import React, { useState } from "react";
-import { StyleSheet, Text, View, Image, StatusBar, SafeAreaView } from "react-native";
+import { StyleSheet, Text, View, Image, StatusBar } from "react-native";
 import Button from './Button';
 import { WordProgress } from "./WordProgress";
+import { postImage } from "../api/endpoints";
 const PlaceholderImage = require('../assets/road-1072821_1920.jpg');
 
 export default function GamePagePage() {
@@ -10,18 +11,9 @@ export default function GamePagePage() {
     const [foundLetters, setFoundLetters] = useState([]);
 
     const uploadImage = async (uri) => {
-        const link = 'http://137.184.74.25:3000';
-        const payload = {
-          imageBase64: uri,
-        };
-    
         try {
-          const response = await fetch(link + '/image', { // Replace 'x/image' with your actual endpoint URL
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify(payload),
+          const response = postImage({
+            imageBase64: uri,
           });
     
           // if (!response.ok) {
