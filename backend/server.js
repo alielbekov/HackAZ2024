@@ -126,8 +126,7 @@ app.get("/start", (req, res) => {
 
     // new user ID every time the game starts
     const userId = uuidv4();
-    const roomId = uuidv4();
-    console.log("start", userId, roomId);
+    let roomId = generateAlphanumericId();
     rooms.set(roomId, {
         lettersFound: new Set(),
         currentWord: "abcdefghijklmnopqrstuvwxyz",
@@ -180,13 +179,17 @@ app.post('/leave-room', (req, res) => {
 });
 
 
-function generateRoomId(){
-    let roomId = Math.floor(Math.random() * 10000);
-    while(rooms.has(roomId)){
-        roomId = Math.floor(Math.random() * 10000);
-    }
-    rooms.add(roomId);
-    return roomId;  
+function generateAlphanumericId() {
+    const chars = 'abcdefghijklmnopqrstuvwxyz0123456789';
+    let id = '';
+    do {
+        id = '';
+        for (let i = 0; i < 4; i++) {
+            const randomIndex = Math.floor(Math.random() * chars.length);
+            id += chars[randomIndex];
+        }
+    } while (rooms.has(id));    
+    return id;
 }
 
 io.on('connection', (socket) => {
