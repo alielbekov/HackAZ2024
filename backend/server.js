@@ -8,6 +8,7 @@ const uploadDir = 'uploads/';
 const path = require('path');
 const cors = require('cors');
 const { v4: uuidv4 } = require('uuid');
+const faker = require('faker');
 const http = require('http');
 const { Server } = require("socket.io");
 const app = express();
@@ -29,6 +30,15 @@ if (!fs.existsSync(uploadDir)) {
 
 // Rooms structure: Maps room ID to room state
 const rooms = new Map();
+
+// User Class - Contains name, color and score (initially 0) of the user.
+class User {
+    constructor(name, color) {
+      this.name = name;
+      this.color = color;
+      this.score = 0;
+    }
+  }
 
 // Configure multer for image storage
 const storage = multer.diskStorage({
@@ -140,11 +150,14 @@ app.get("/start", (req, res) => {
     // new user ID every time the game starts
     const userId = uuidv4();
     let roomId = generateAlphanumericId();
+    const color = generateRandomColor();
+    const new_user = new User(faker.name.findName(), color);
     rooms.set(roomId, {
         lettersFound: new Set(),
         currentWord: "abcdefghijklmnopqrstuvwxyz",
-        users: new Set([userId]) 
+        users: new Map()
     });
+    rooms.get(roomId).users.set(userId, new_user);
     res.json({ roomId, userId });
 });
 
@@ -153,9 +166,28 @@ app.get("/join/:roomID", (req, res) => {
     const roomId = req.params.roomID;
     if(rooms.has(roomId)){
         const room = rooms.get(roomId);
-        room.users.add(userId);
+        const new_user = new User(faker.name.findName(), color);
+        room.users.set(userId, new_user);
         res.json({ roomId, userId });
     }else{
+        res.status(404).json({ error: 'Room not found' });
+    }
+});
+
+// Generate Random Colors
+app.get('/get-color/:roomId/:userId', (req, res) => {
+    const userId = req.params.userId;
+    const roomId = req.params.roomId;
+    if(rooms.has(roomId)) {
+        const room = rooms.get(roomId);
+        if(room.users.has(userId)) {
+            const user = room.users.get(userId);
+            const color = user.color;
+            res.json({ userId, color });
+        } else {
+            res.status(404).json({ error: 'User not found' });
+        }
+    } else {
         res.status(404).json({ error: 'Room not found' });
     }
 });
@@ -227,6 +259,13 @@ function isGameOver(lettersFound, currentWord){
         }
     }
     return gameStatus;
+}
+
+function generateRandomColor() {
+    const r = Math.floor(Math.random() * 128 + 127).toString(16);
+    const g = Math.floor(Math.random() * 128 + 127).toString(16);
+    const b = Math.floor(Math.random() * 128 + 127).toString(16);
+    return `#${r}${g}${b}`;
 }
 
 io.on('connection', (socket) => {
