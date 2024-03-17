@@ -7,7 +7,7 @@ import { WordProgress } from "./WordProgress";
 import {postImage} from "../api/endpoints";
 const PlaceholderImage = require('../assets/road-1072821_1920.jpg');
 
-export default function GamePagePage({route}) {
+export default function GamePage({route}) {
     const [imageUri, setImageUri] = useState(null);
     const [serverResponse, setServerResponse] = useState('');
     const [foundLetters, setFoundLetters] = useState([]);
