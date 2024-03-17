@@ -7,15 +7,14 @@ export const WordProgress = ({foundLetters, setServerResponse, roomId}) => {
   const [word, setWord] = useState("Placeholder");
   useEffect(() => {
     const fetchWord = async () => {
-
       console.log("Attempting to fetch word with roomId:", roomId); // Debugging log
       if (!roomId) {
         console.log("No roomId available, skipping fetch");
         return; // Early return if roomId is not available
       }
-      const link = `http://localhost:3000/get-word/${roomId}`;
+
       try {
-        const response = await fetch(link);
+        const response = await fetchGetWord(roomId);
         if (!response.ok) {
           throw new Error(`HTTP error! status: ${response.status}`);
         }
@@ -27,10 +26,10 @@ export const WordProgress = ({foundLetters, setServerResponse, roomId}) => {
 
       }
     };
-  
+
     fetchWord();
   }, [roomId, setServerResponse]); // Use roomId in the dependency array
-  
+
   return (
     <View style={styles.wordContainer}>
       {[...word].map((character, index) => {

@@ -4,6 +4,7 @@ import { StyleSheet, Text, View, Image, StatusBar, TouchableOpacity, SafeAreaVie
 import Clipboard from '@react-native-clipboard/clipboard'; // Updated import
 import Button from './Button';
 import { WordProgress } from "./WordProgress";
+import {postImage} from "../api/endpoints";
 const PlaceholderImage = require('../assets/road-1072821_1920.jpg');
 
 export default function GamePagePage({route}) {
@@ -28,18 +29,11 @@ export default function GamePagePage({route}) {
 
 
     const uploadImage = async (uri) => {
-        const link = 'http://localhost:3000';
-        const payload = {
-          imageBase64: uri,
-          roomId: roomId,
-          userId: userId};
         try {
-          const response = await fetch(link + '/image', { // Replace 'x/image' with your actual endpoint URL
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify(payload),
+          const response = await postImage({
+            imageBase64: uri,
+            roomId: roomId,
+            userId: userId
           });
     
           // if (!response.ok) {
