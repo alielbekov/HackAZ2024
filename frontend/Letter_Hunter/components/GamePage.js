@@ -26,9 +26,16 @@ export default function GamePage({route}) {
           setFoundLetters(data); // Assuming the server sends an array of found letters
       };
 
+      const handleGameOver = (data) => {
+        const {imagesList} = data;  
+        console.log(imagesList);
+        console.log('Game Over!');
+      };
+
       // Set up socket event listeners
       socket.on('newPlayer', handleNewPlayer);
       socket.on('lettersUpdated', handleLettersUpdated);
+      socket.on('gameOver', handleGameOver);
 
       // Cleanup function
       return () => {
@@ -79,7 +86,15 @@ export default function GamePage({route}) {
         toastErrorWithMsg("Error uploading image", new Error(`Server responded with ${response.status}: ${response.statusText}`));
         return;
       }
-
+      
+      response.json().then((data) => {
+        const {isGameOver} = data;
+        if(isGameOver){
+          console.log('Game Over');
+          socket.emit('gameOver', { roomId });
+        }
+      });
+      
       console.log('Image uploaded successfully');
       socket.emit('lettersUpdated', { roomId });
     };

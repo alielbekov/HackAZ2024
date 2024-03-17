@@ -3,7 +3,6 @@ import {fetchStartIds} from "../api/endpoints";
 import {globalStyles} from "../styles/globalStyles";
 import {toastError, toastErrorWithMsg} from "./Toasts";
 
-
 const backgroundImage = require('../assets/background-image.jpg');
 export const LandingScreen = ({navigationRef}) => {
 
