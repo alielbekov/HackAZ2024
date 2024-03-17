@@ -84,6 +84,17 @@ app.post('/image', upload.single('image'), async (req, res) => {
 
 });
 
+app.get("/get-found-letters/:roomId", (req, res) => { 
+    const roomId = req.params.roomId;
+    console.log("get-found-letters", roomId);
+    if (rooms.has(roomId)) {
+        const room = rooms.get(roomId);
+        res.json({ lettersFound: Array.from(room.lettersFound) });
+    } else {
+        res.status(404).json({ error: 'Room not found' });
+    }
+});  
+
 
 app.get('/get-word/:roomId', (req, res) => {
     const roomId = req.params.roomId;

@@ -23,3 +23,7 @@ export const postImage = async (data) => {
 export const getJoinRoom = async (roomId) => {
   return fetch(serverLink + `/join/${roomId}`);
 };
+
+export const getFoundLetters = async (roomId) => {
+  return fetch(serverLink + `/get-found-letters/${roomId}`);
+};

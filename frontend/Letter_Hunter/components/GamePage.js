@@ -4,7 +4,7 @@ import { StyleSheet, Text, View, Image, StatusBar, TouchableOpacity, SafeAreaVie
 import Clipboard from '@react-native-clipboard/clipboard'; // Updated import
 import Button from './Button';
 import { WordProgress } from "./WordProgress";
-import {postImage} from "../api/endpoints";
+import {postImage, getFoundLetters} from "../api/endpoints";
 const PlaceholderImage = require('../assets/road-1072821_1920.jpg');
 
 export default function GamePagePage({route}) {
@@ -20,13 +20,20 @@ export default function GamePagePage({route}) {
           setRoomId(roomId);
           setUserId(userId);
       }
+
     }, [route.params]);
 
+
+    useEffect(() => {
+      // Only call updateFoundLetters if roomId is not null or undefined
+      if (roomId) {
+        updateFoundLetters();
+      }
+    }, [roomId]); // Depend on roomId to ensure it's set before calling
     const copyToClipboard = () => {
         Clipboard.setString(roomId);
         Alert.alert('Copied', 'Room ID has been copied to clipboard.');
     };
-
 
     const uploadImage = async (uri) => {
         try {
@@ -49,6 +56,25 @@ export default function GamePagePage({route}) {
           setServerResponse('Error uploading image:. ' + error.message);
         }
       };
+
+    const updateFoundLetters = async () => {
+
+        try {
+          console.log('Updating found letters')
+          const response = await getFoundLetters(roomId);
+    
+          if (!response.ok) {
+            throw new Error(`Server responded with ${response.status}: ${response.statusText}`);
+          }
+    
+          await response.json().then((data) => {
+            setFoundLetters(data.lettersFound);
+          });
+        } catch (error) {
+          console.error('Error updating found letters:', error);
+          setServerResponse('Error updating found letters: ' + error.message);
+        }
+      }
 
 
 
