@@ -8,9 +8,9 @@ export const LandingScreen = ({navigationRef}) => {
     if (res.status !== 200) {
       return;
     }
-    data = await res.json();
+    const data = await res.json();
     const {roomId, userId} = data;
-    navigationRef.navigate("Game", {roomId, userId})  
+    navigationRef.navigate("Game", {roomId, userId});
   }
 
   return (

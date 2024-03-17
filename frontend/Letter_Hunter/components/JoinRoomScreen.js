@@ -1,21 +1,24 @@
 import {Pressable, SafeAreaView, StatusBar, StyleSheet, Text, TextInput, View} from "react-native";
 import {useState} from "react";
-import {postJoinRoom} from "../api/endpoints";
+import {getJoinRoom} from "../api/endpoints";
 
 export const JoinRoomScreen = ({ navigationRef }) => {
   const [roomId, setRoomId] = useState("");
 
-  const joinARoom = async () => {
-    const res = postJoinRoom({
-      roomId,
-      userId: "userIdPlaceholder"
-    });
+  // Don't allow call to navigate in async function.
+  const callNavigate = (response) => {
+    navigationRef.navigate("Game", response);
+  };
 
-    if (res.status !== 200) {
-      return;
+  const joinARoom = async () => {
+    const res = await getJoinRoom(roomId).catch((error) => { console.log(error); });
+
+    if (res === undefined || res.status !== 200) {
+      return; // Fixme: report error.
     }
 
-    navigationRef.navigate("Game");
+    let data = await res.json();
+    callNavigate(data);
   };
 
   return (
