@@ -1,6 +1,18 @@
 import {Pressable, SafeAreaView, StatusBar, StyleSheet, Text, View} from "react-native";
+import {fetchStartIds} from "../api/endpoints";
 
 export const LandingScreen = ({navigationRef}) => {
+
+  const handleStart = async () => {
+    const res = await fetchStartIds();
+    if (res.status !== 200) {
+      return;
+    }
+    data = await res.json();
+    const {roomId, userId} = data;
+    navigationRef.navigate("Game", {roomId, userId})  
+  }
+
   return (
     <SafeAreaView style={styles.container}>
       <StatusBar backgroundColor='#25292e'/>
@@ -8,7 +20,7 @@ export const LandingScreen = ({navigationRef}) => {
         <Text style={{color: "white", fontSize: 48}}>Letter Hunt</Text>
       </View>
       <View style={styles.buttonContainer}>
-        <Pressable style={[styles.button, {backgroundColor: "#FFF000"}]} onPress={() => navigationRef.navigate("Game")}>
+        <Pressable style={[styles.button, {backgroundColor: "#FFF000"}]} onPress={handleStart}>
           <Text style={styles.buttonLabel}>Start</Text>
         </Pressable>
       </View>

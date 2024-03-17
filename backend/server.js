@@ -68,7 +68,7 @@ app.post('/image', upload.single('image'), async (req, res) => {
             const ocrResult = await ocrSpace(imagePath, { apiKey: process.env.OCR_API_KEY });
             // Process and respond as necessary
             // add new letter to lettersFound and send it
-            const letters = ocrResult.ParsedResults[0].ParsedText.split('');
+            const letters = ocrResult.ParsedResults[0].ParsedText.replace(/[^a-zA-Z]/g, '').toLowerCase().split('');
             letters.forEach(letter => room.lettersFound.add(letter));
 
             // TODO: need to setup socket.io to send the letters to the clients in the room
