@@ -1,19 +1,45 @@
-import React, { useState } from "react";
-import { StyleSheet, Text, View, Image, StatusBar } from "react-native";
+
+import React, { useState, useEffect } from 'react';
+import { StyleSheet, Text, View, Image, StatusBar, TouchableOpacity, SafeAreaView, Alert } from 'react-native';
+import Clipboard from '@react-native-clipboard/clipboard'; // Updated import
 import Button from './Button';
 import { WordProgress } from "./WordProgress";
-import { postImage } from "../api/endpoints";
 const PlaceholderImage = require('../assets/road-1072821_1920.jpg');
 
-export default function GamePagePage() {
+export default function GamePagePage({route}) {
     const [imageUri, setImageUri] = useState(null);
     const [serverResponse, setServerResponse] = useState('');
     const [foundLetters, setFoundLetters] = useState([]);
+    const [roomId, setRoomId] = useState('');
+    const [userId, setUserId] = useState('');
+
+    useEffect(() => {
+      if (route.params) {
+          const { roomId, userId } = route.params;
+          setRoomId(roomId);
+          setUserId(userId);
+      }
+    }, [route.params]);
+
+    const copyToClipboard = () => {
+        Clipboard.setString(roomId);
+        Alert.alert('Copied', 'Room ID has been copied to clipboard.');
+    };
+
 
     const uploadImage = async (uri) => {
+        const link = 'http://localhost:3000';
+        const payload = {
+          imageBase64: uri,
+          roomId: roomId,
+          userId: userId};
         try {
-          const response = postImage({
-            imageBase64: uri,
+          const response = await fetch(link + '/image', { // Replace 'x/image' with your actual endpoint URL
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(payload),
           });
     
           // if (!response.ok) {
@@ -22,13 +48,14 @@ export default function GamePagePage() {
     
           await response.json().then((data) => {
             setFoundLetters(data.lettersFound);
+            setServerResponse('Letters found: ' + data.lettersFound.join(', '));
           });
         } catch (error) {
           console.error('Error uploading image:', error);
           setServerResponse('Error uploading image:. ' + error.message);
         }
       };
-  
+
 
 
     const handleImage = (images) => {
@@ -36,25 +63,33 @@ export default function GamePagePage() {
     uploadImage(images.assets[0].uri); // Additionally upload the image
     };
 
-  return (
-    <View style={styles.container}>
-      <StatusBar backgroundColor="#25292e" />
-      <View>
-        <Text style={{ color: "white" }}>Letter Hunter</Text>
+
+    return (
+      <View style={styles.container}>
+          <StatusBar backgroundColor="#25292e" />
+          <View>
+              <Text style={{ color: "white" }}>Letter Hunter</Text>
+          </View>
+          <View style={styles.roomIdContainer}>
+              <Text style={styles.roomIdText}>Room ID: {roomId}</Text>
+              <TouchableOpacity onPress={copyToClipboard} style={styles.copyButton}>
+                  <Text style={styles.copyButtonText}>Copy</Text>
+              </TouchableOpacity>
+          </View>
+          <View style={styles.currentWord}>
+              <WordProgress foundLetters={foundLetters} setServerResponse={setServerResponse} roomId={roomId} />
+          </View>
+          <View style={styles.imageContainer}>
+              <Image source={imageUri ? { uri: imageUri } : PlaceholderImage} style={styles.image} resizeMode="cover" />
+          </View>
+          <View style={styles.serverResponse}>
+              <Text style={{ padding: 5 }}>Server Response: {serverResponse}</Text>
+          </View>
+          <View style={styles.footerContainer}>
+              <Button theme="primary" label="Take a photo" onImagePicked={handleImage} />
+          </View>
       </View>
-      <View style={styles.currentWord}>
-        <WordProgress foundLetters={foundLetters} setServerResponse={setServerResponse} />
-      </View>
-      <View style={styles.imageContainer}>
-        <Image source={imageUri ? { uri: imageUri } : PlaceholderImage} style={styles.image} resizeMode="cover" />
-      </View>
-      <View style={styles.serverResponse}>
-        <Text style={{ padding: 5 }}>Server Response: {serverResponse}</Text>
-      </View>
-      <View style={styles.footerContainer}>
-        <Button theme="primary" label="Take a photo" onImagePicked={handleImage} />
-      </View>
-    </View>
+
   );
 }
 

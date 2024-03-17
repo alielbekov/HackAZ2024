@@ -3,26 +3,34 @@ import {useEffect, useState} from "react";
 import stringifySafe from "@expo/metro-runtime/build/error-overlay/modules/stringifySafe";
 import {fetchGetWord} from "../api/endpoints";
 
-export const WordProgress = ({foundLetters, setServerResponse}) => {
+export const WordProgress = ({foundLetters, setServerResponse, roomId}) => {
   const [word, setWord] = useState("Placeholder");
-
   useEffect(() => {
     const fetchWord = async () => {
-      const res = fetchGetWord().catch((error) => { setServerResponse(stringifySafe(error)); });
 
-      if (res !== undefined) {
-        res.json().then((data) => {
-          setWord(data.currentWord);
-        })
-        .catch((error) => {
-          setServerResponse(stringifySafe(error));
-        });
+      console.log("Attempting to fetch word with roomId:", roomId); // Debugging log
+      if (!roomId) {
+        console.log("No roomId available, skipping fetch");
+        return; // Early return if roomId is not available
+      }
+      const link = `http://localhost:3000/get-word/${roomId}`;
+      try {
+        const response = await fetch(link);
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        const data = await response.json();
+        setWord(data.currentWord);
+      } catch (error) {
+        console.error('Fetch error:', error);
+        setServerResponse(`Error fetching word: ${error.toString()}`);
+
       }
     };
-
+  
     fetchWord();
-  }, [word, setServerResponse]);
-
+  }, [roomId, setServerResponse]); // Use roomId in the dependency array
+  
   return (
     <View style={styles.wordContainer}>
       {[...word].map((character, index) => {

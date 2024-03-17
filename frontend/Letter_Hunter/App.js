@@ -1,4 +1,5 @@
 import React from 'react';
+
 import {NavigationContainer, useNavigationContainerRef} from '@react-navigation/native';
 import {createNativeStackNavigator} from '@react-navigation/native-stack';
 
@@ -6,9 +7,11 @@ import {LandingScreen} from "./components/LandingScreen";
 import GamePage from './components/GamePage';
 import {JoinRoomScreen} from "./components/JoinRoomScreen";
 
+
 const Stack = createNativeStackNavigator();
 
 export default function App() {
+
   const navigationRef = useNavigationContainerRef();
   return (
     <NavigationContainer ref={navigationRef}>
