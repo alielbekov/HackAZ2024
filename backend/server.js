@@ -180,7 +180,7 @@ app.post('/leave-room', (req, res) => {
 
 
 function generateAlphanumericId() {
-    const chars = 'abcdefghijklmnopqrstuvwxyz0123456789';
+    const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
     let id = '';
     do {
         id = '';
