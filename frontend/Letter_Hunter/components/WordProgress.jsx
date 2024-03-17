@@ -1,14 +1,14 @@
 import {StyleSheet, Text, View} from "react-native";
 import {useEffect, useState} from "react";
 import stringifySafe from "@expo/metro-runtime/build/error-overlay/modules/stringifySafe";
+import {fetchGetWord} from "../api/endpoints";
 
 export const WordProgress = ({foundLetters, setServerResponse}) => {
   const [word, setWord] = useState("Placeholder");
 
   useEffect(() => {
     const fetchWord = async () => {
-      const res = await fetch("http://137.184.74.25:3000/get-word")
-        .catch((error) => { setServerResponse(stringifySafe(error)); });
+      const res = fetchGetWord().catch((error) => { setServerResponse(stringifySafe(error)); });
 
       if (res !== undefined) {
         res.json().then((data) => {
