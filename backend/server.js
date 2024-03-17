@@ -6,6 +6,7 @@ const { ocrSpace } = require('ocr-space-api-wrapper');
 const fs = require('fs');
 const uploadDir = 'uploads/';
 const cors = require('cors');
+const { v4: uuidv4 } = require('uuid');
 const app = express();
 const PORT = 3000;
 
@@ -32,16 +33,11 @@ const storage = multer.diskStorage({
 const upload = multer({ storage: storage });
 
 let currentWord = "";
-let currentSentence = "";
 const wordBank = [
     "abcdefghijklmnopqrstuvwxyz"
  ];
 
-const sentenceBank = [
-    "The sun is a star at the center of the Solar System.",
-    "The Solar System consists of the Sun and the objects that orbit it.",
-    "The Moon is Earth's only natural satellite."
-]
+
 
 app.use(express.json({limit: '50mb'})); // Increased limit if you're expecting large images
 app.use(express.urlencoded({ extended: true, limit: '50mb' }));
@@ -49,36 +45,43 @@ app.use(express.static('public'));
 app.use(cors());
 
 app.post('/image', upload.single('image'), async (req, res) => {
-    try {
-        let imagePath;
-        if (req.file) {
-            imagePath = req.file.path;
-        } else if (req.body.imageBase64) {
-            console.log("Base64 image")
-            // Decode Base64 image
-            const base64Data = req.body.imageBase64.split(';base64,').pop();
-            imagePath = `${uploadDir}image-${Date.now()}.jpg`;
-            fs.writeFileSync(imagePath, base64Data, {encoding: 'base64'});
-        } else {
-            return res.status(400).json({ error: 'No file uploaded, URI, or Base64 data provided.' });
+    const {roomId, userId} = req.body;
+    if (rooms.has(roomId)) {
+        const room = rooms.get(roomId);
+        if (!room.users.has(userId)) {
+            return res.status(403).json({ error: 'User not in room' });
         }
+        try {
+            let imagePath;
+            if (req.file) {
+                imagePath = req.file.path;
+            } else if (req.body.imageBase64) {
+                // Decode Base64 image
+                const base64Data = req.body.imageBase64.split(';base64,').pop();
+                imagePath = `${uploadDir}image-${Date.now()}.jpg`;
+                fs.writeFileSync(imagePath, base64Data, {encoding: 'base64'});
+            } else {
+                return res.status(400).json({ error: 'No file uploaded, URI, or Base64 data provided.' });
+            }
+            // OCR or other processing can go here
+            console.log('Image path:', imagePath);
+            const ocrResult = await ocrSpace(imagePath, { apiKey: process.env.OCR_API_KEY });
+            // Process and respond as necessary
+            // add new letter to lettersFound and send it
+            const letters = ocrResult.ParsedResults[0].ParsedText.split('');
+            letters.forEach(letter => room.lettersFound.add(letter));
 
-        // OCR or other processing can go here
-        console.log('Image path:', imagePath);
-        const ocrResult = await ocrSpace(imagePath, { apiKey: process.env.OCR_API_KEY });
-        // Process and respond as necessary
-        // add new letter to lettersFound and send it
-        console.log(ocrResult.ParsedResults[0].ParsedText);
-        lettersFound.clear();
-        var newLetters = ocrResult.ParsedResults[0].ParsedText.toLowerCase().split('').filter(char => char >= 'a' && char <= 'z');
-        for (let i = 0; i < newLetters.length; i++) {
-            lettersFound.add(newLetters[i]);
+            // TODO: need to setup socket.io to send the letters to the clients in the room
+            res.json({ lettersFound: Array.from(room.lettersFound)});
+        } catch (error) {
+            console.error('Error:', error);
+            res.status(500).json({ error: 'Internal server error' });
         }
-        res.json({ lettersFound: Array.from(lettersFound) });
-    } catch (error) {
-        console.error('Error:', error);
-        res.status(500).json({ error: 'Internal server error' });
     }
+    else {
+        res.status(404).json({ error: 'Room not found' })
+    }
+
 });
 
 
@@ -92,15 +95,31 @@ app.get('/get-word', (req, res) => {
     }
 });
 
-app.get('/get-sentence', (req, res) => {  
-    if(currentSentence !== ""){
-        res.json({ currentSentence });
+app.get("/start", (req, res) => {
+
+    // new user ID every time the game starts
+    const userId = uuidv4();
+    const roomId = uuidv4();
+    rooms.set(roomId, {
+        lettersFound: new Set(),
+        currentWord: "abcdefghijklmnopqrstuvwxyz",
+        users: new Set([userId]) 
+    });
+    res.json({ roomId, userId });
+});
+
+app.get("/join/:roomID", (req, res) => {
+    const userId = uuidv4();
+    const roomId = req.params.roomID;
+    if(rooms.has(roomId)){
+        const room = rooms.get(roomId);
+        room.users.add(userId);
+        res.json({ roomId, userId });
     }else{
-        let sentence = sentenceBank[Math.floor(Math.random() * sentenceBank.length)];
-        currentSentence = sentence;
-        res.json({ currentSentence: sentence });
+        res.status(404).json({ error: 'Room not found' });
     }
 });
+
 
 // Create a new room
 app.post('/create-room', (req, res) => {
@@ -114,17 +133,7 @@ app.post('/create-room', (req, res) => {
     res.json({ roomId });
 });
 
-// Join a room
-app.post('/join-room', (req, res) => {
-    const { roomId, userId } = req.body;
-    if (rooms.has(roomId)) {
-        const room = rooms.get(roomId);
-        room.users.add(userId); // Add user to the room
-        res.json({ success: true });
-    } else {
-        res.status(404).json({ error: 'Room not found' });
-    }
-});
+
 
 // Leave a room
 app.post('/leave-room', (req, res) => {
