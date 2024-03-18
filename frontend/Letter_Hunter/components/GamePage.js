@@ -142,7 +142,6 @@ export default function GamePage({route, navigation}) {
   return (
     <ScrollView contentContainerStyle={styles.scrollViewContainer} style={{flex: 1}}>
       <View style={styles.container}>
-        <StatusBar backgroundColor="#25292e"/>
         <View style={styles.titleContainer}>
           <Text style={[styles.title, globalStyles.text]}>Find Letters</Text>
         </View>

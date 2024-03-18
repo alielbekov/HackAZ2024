@@ -5,7 +5,6 @@ import {LandingScreen} from "./components/LandingScreen";
 import GamePage from './components/GamePage';
 import {JoinRoomScreen} from "./components/JoinRoomScreen";
 import {Image, Text, TouchableOpacity} from 'react-native'; // Make sure to import Text here
-import AppLoading from 'expo-app-loading';
 import {Chewy_400Regular, useFonts} from '@expo-google-fonts/chewy';
 import {globalStyles} from './styles/globalStyles';
 import Toast from "react-native-toast-message";
@@ -19,7 +18,7 @@ export default function App() {
   });
 
   if (!fontsLoaded) {
-    return <AppLoading/>;
+    return;
   }
 
   return (

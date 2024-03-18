@@ -1,4 +1,4 @@
-import {SafeAreaView, StyleSheet, Text, TextInput, View, Platform} from "react-native";
+import {SafeAreaView, StyleSheet, Text, TextInput, View, Platform, StatusBar} from "react-native";
 import {useState} from "react";
 import {getJoinRoom} from "../api/endpoints";
 import {toastError, toastErrorWithMsg} from "./Toasts";

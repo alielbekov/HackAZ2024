@@ -1,4 +1,4 @@
-import { ScrollView, Pressable, SafeAreaView, StyleSheet, Text, View } from "react-native";
+import { ScrollView, Pressable, SafeAreaView, StyleSheet, Text, View, StatusBar, Platform } from "react-native";
 import {useEffect, useState} from "react";
 import {globalStyles} from "../styles/globalStyles";
 import socket from '../socket/socketService'
@@ -88,7 +88,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#184e77',
     alignItems: 'center',
     justifyContent: 'center',
-    // marginTop: Platform.OS === 'android' ? StatusBar.currentHeight : 0,
+    marginTop: Platform.OS === 'android' ? StatusBar.currentHeight : 0,
   },
   titleContainer: {
     flex: 1 / 3,

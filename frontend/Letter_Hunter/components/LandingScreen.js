@@ -1,4 +1,4 @@
-import {ImageBackground, SafeAreaView, StyleSheet, Text, TouchableOpacity, View, Platform} from "react-native";
+import {ImageBackground, SafeAreaView, StyleSheet, Text, TouchableOpacity, View, Platform, StatusBar} from "react-native";
 import {fetchStartIds} from "../api/endpoints";
 import {globalStyles} from "../styles/globalStyles";
 import {toastError, toastErrorWithMsg} from "./Toasts";
