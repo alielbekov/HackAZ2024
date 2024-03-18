@@ -64,10 +64,7 @@ const storage = multer.diskStorage({
 
 
 const upload = multer({ storage: storage });
-const wordBank = [
-    "abcdefghijklmnopqrstuvwxyz"
- ];
-
+const wordBank = ['revolutionary', 'unbelievable', 'conversations', 'international', 'technological', 'sustainability', 'understanding', 'extraordinary', 'collaboration', 'transportation', 'communication', 'entertainment', 'environmental', 'accomplishment', 'configurations', 'archaeological', 'independently', 'misunderstood', 'reconstruction', 'straightforward', 'transformation', 'unconventional', 'visualization', 'accountability', 'characteristic', 'discrimination', 'infrastructure', 'microorganisms', 'philosophical', 'responsibility'];
 
 
 app.use(express.json({limit: '50mb'})); // Increased limit if you're expecting large images
@@ -77,7 +74,7 @@ app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 app.use(cors());
 
 app.post('/image', upload.single('image'), async (req, res) => {
-    const {roomId, userId} = req.body;
+    const { roomId, userId } = req.body;
     if (rooms.has(roomId)) {
         const room = rooms.get(roomId);
         if (!room.users.has(userId)) {
@@ -91,20 +88,22 @@ app.post('/image', upload.single('image'), async (req, res) => {
                 // Decode Base64 image
                 const base64Data = req.body.imageBase64.split(';base64,').pop();
                 imagePath = `${uploadDir}${roomId}-${Date.now()}.jpg`;
-                console.log('Image path:', imagePath);
                 fs.writeFileSync(imagePath, base64Data, {encoding: 'base64'});
             } else {
                 return res.status(400).json({ error: 'No file uploaded, URI, or Base64 data provided.' });
             }
             // OCR or other processing can go here
-            console.log('Image path:', imagePath);
             const ocrResult = await ocrSpace(imagePath, { apiKey: process.env.OCR_API_KEY });
             // Process and respond as necessary
-            // add new letter to lettersFound and send it
             const letters = ocrResult.ParsedResults[0].ParsedText.replace(/[^a-zA-Z]/g, '').toLowerCase().split('');
-            letters.forEach(letter => room.lettersFound.add(letter));
+            const userColor = room.users.get(userId).color; // Get the user's color
+            letters.forEach(letter => {
+                if (!room.lettersFound.has(letter)) {
+                    room.lettersFound.set(letter, userColor); // Associate the letter with the user's color
+                }
+            });
 
-            const gameStatus  = isGameOver(room.lettersFound, room.currentWord);
+            const gameStatus = isGameOver(room.lettersFound, room.currentWord);
             
             res.status(200).json({status: 'success', isGameOver: gameStatus});
         } catch (error) {
@@ -115,19 +114,24 @@ app.post('/image', upload.single('image'), async (req, res) => {
     else {
         res.status(404).json({ error: 'Room not found' })
     }
-
 });
 
-app.get("/get-found-letters/:roomId", (req, res) => { 
+app.get("/get-found-letters/:roomId", (req, res) => {
     const roomId = req.params.roomId;
     console.log("get-found-letters", roomId);
     if (rooms.has(roomId)) {
         const room = rooms.get(roomId);
-        res.json({ lettersFound: Array.from(room.lettersFound) });
+        // Convert the Map of letters and colors to an array of objects
+        const lettersFoundArray = Array.from(room.lettersFound).map(([letter, color]) => ({
+            letter,
+            color
+        }));
+        res.json({ lettersFound: lettersFoundArray });
     } else {
         res.status(404).json({ error: 'Room not found' });
     }
-});  
+});
+
 
 
 app.get('/get-word/:roomId', (req, res) => {
@@ -154,9 +158,10 @@ app.get("/start", (req, res) => {
     let roomId = generateAlphanumericId();
     const color = generateRandomColor();
     const new_user = new User(generateUsername(), color);
+    const randomWord = wordBank[Math.floor(Math.random() * wordBank.length)];   
     rooms.set(roomId, {
-        lettersFound: new Set(),
-        currentWord: "abcdefghijklmnopqrstuvwxyz",
+        lettersFound: new Map(),
+        currentWord: randomWord,
         users: new Map()
     });
     rooms.get(roomId).users.set(userId, new_user);
@@ -261,12 +266,44 @@ function isGameOver(lettersFound, currentWord){
     return gameStatus;
 }
 
+
+
 function generateRandomColor() {
-    const r = Math.floor(Math.random() * 128 + 127).toString(16);
-    const g = Math.floor(Math.random() * 128 + 127).toString(16);
-    const b = Math.floor(Math.random() * 128 + 127).toString(16);
-    return `#${r}${g}${b}`;
+    // Generate a random hue from the color wheel
+    const hue = Math.floor(Math.random() * 360);
+    
+    // Set high saturation and brightness to get vivid colors
+    const saturation = 90 + Math.floor(Math.random() * 10); // 90-100%
+    const brightness = 90 + Math.floor(Math.random() * 10); // 90-100%
+    
+    // Convert HSV to RGB (function below)
+    const rgb = hsvToRgb(hue, saturation, brightness);
+    
+    // Convert RGB to hexadecimal format
+    const color = `#${componentToHex(rgb.r)}${componentToHex(rgb.g)}${componentToHex(rgb.b)}`;
+    return color;
 }
+
+// Helper function to convert HSV to RGB
+function hsvToRgb(h, s, v) {
+    s /= 100;
+    v /= 100;
+    const k = n => (n + h / 60) % 6;
+    const f = n => v - v * s * Math.max(0, Math.min(k(n), 4 - k(n), 1));
+    return {
+        r: Math.floor(255 * f(5)),
+        g: Math.floor(255 * f(3)),
+        b: Math.floor(255 * f(1))
+    };
+}
+
+// Helper function to convert a color component to a hexadecimal string
+function componentToHex(c) {
+    const hex = c.toString(16);
+    return hex.length == 1 ? "0" + hex : hex;
+}
+
+
 
 io.on('connection', (socket) => {
     console.log('A user connected', socket.id);
@@ -286,8 +323,10 @@ io.on('connection', (socket) => {
     
 
     socket.on('lettersUpdated', ({ roomId }) => {
-        io.to(roomId).emit('lettersUpdated', Array.from(rooms.get(roomId).lettersFound));
+        const lettersFound = Array.from(rooms.get(roomId).lettersFound).map(([letter, color]) => ({ letter, color }));
+        io.to(roomId).emit('lettersUpdated', lettersFound);
     });
+    
 
     socket.on('updatePlayerNumber', (roomId) => {
         io.to(roomId).emit('updatePlayerNumber', rooms.get(roomId).users.size);

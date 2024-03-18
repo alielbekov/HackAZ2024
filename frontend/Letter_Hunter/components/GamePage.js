@@ -104,23 +104,23 @@ export default function GamePage({route, navigation}) {
   };
 
   const updateFoundLetters = async () => {
-    console.log('Updating found letters')
+    console.log('Updating found letters');
     const response = await getFoundLetters(roomId).catch(toastError);
 
     if (response === undefined) {
-      return;
+        return;
     }
 
     if (!response.ok) {
-      toastErrorWithMsg("Error updating found letters", new Error(`Server responded with ${response.status}: ${response.statusText}`));
-      return;
+        toastErrorWithMsg("Error updating found letters", new Error(`Server responded with ${response.status}: ${response.statusText}`));
+        return;
     }
 
     await response.json().then((data) => {
-      setFoundLetters(data.lettersFound);
+        // Assuming the API response structure matches our expectations
+        setFoundLetters(data.lettersFound);
     });
-  }
-
+}
 
   const handleImage = async (images) => {
     setImageUri(images.assets[0].uri);
