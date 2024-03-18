@@ -8,30 +8,34 @@ export const WaitingScreen = ({ navigationRef, route }) => {
   const [numPlayers, setNumPlayers] = useState(0);
 
   useEffect(() => {
-    //todo: connect to join-room socket and update numPlayers.
-    //todo: connect to start game socket and navigate to game page when told.
+    // Emit joinRoom event as soon as the component mounts
+    socket.emit('joinRoom', { roomId: route.params.roomId, userId: route.params.userId });
+
     const updatePlayerNumber = (playerNumber) => {
       console.log("updatePlayerNumber client", playerNumber);
       setNumPlayers(playerNumber);
-    }
+    };
 
     const handleGameStart = () => {
       navigationRef.navigate("Game", {
         roomId: route.params.roomId,
         userId: route.params.userId,
       });
-    }
+    };
 
     socket.on('updatePlayerNumber', updatePlayerNumber);
     socket.on('startGame', handleGameStart);
 
+    // Clean up by removing listeners when component unmounts
     return () => {
       socket.off('updatePlayerNumber', updatePlayerNumber);
       socket.off('startGame', handleGameStart);
     };
-  }, []);
+  }, [navigationRef, route.params.roomId, route.params.userId]); // Add dependencies here
 
   const startGame = () => {
+    socket.emit('startGame', { roomId: route.params.roomId });
+
     navigationRef.navigate("Game", {
       roomId: route.params.roomId,
       userId: route.params.userId,

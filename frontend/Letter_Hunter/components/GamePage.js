@@ -61,7 +61,6 @@ export default function GamePage({route}) {
       // Only call updateFoundLetters if roomId is not null or undefined
       if (roomId) {
         updateFoundLetters();
-        socket.emit('joinRoom', { roomId, userId });
       }
     }, [roomId]); // Depend on roomId to ensure it's set before calling
     const copyToClipboard = () => {

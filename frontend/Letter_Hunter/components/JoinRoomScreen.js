@@ -2,9 +2,6 @@ import {Pressable, SafeAreaView, StatusBar, StyleSheet, Text, TextInput, View} f
 import {useState} from "react";
 import {getJoinRoom} from "../api/endpoints";
 import {toastError, toastErrorWithMsg} from "./Toasts";
-import socket from '../socket/socketService'
-
-
 export const JoinRoomScreen = ({ navigationRef }) => {
   const [roomId, setRoomId] = useState("");
 
@@ -26,8 +23,6 @@ export const JoinRoomScreen = ({ navigationRef }) => {
     }
 
     let data = await res.json();
-    socket.emit('updatePlayerNumber', data.roomId);
-    console.log("JoinRoomScreen.js: joinARoom: data: ", data);
     callNavigate(data);
   };
 
