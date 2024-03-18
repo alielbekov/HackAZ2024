@@ -1,4 +1,4 @@
-import {ImageBackground, SafeAreaView, StyleSheet, Text, TouchableOpacity, View} from "react-native";
+import {ImageBackground, SafeAreaView, StyleSheet, Text, TouchableOpacity, View, Platform} from "react-native";
 import {fetchStartIds} from "../api/endpoints";
 import {globalStyles} from "../styles/globalStyles";
 import {toastError, toastErrorWithMsg} from "./Toasts";
@@ -54,7 +54,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#25292e',
     alignItems: 'center',
     justifyContent: 'center',
-    // fontFamily: 'Chewy_400Regular',
+    marginTop: Platform.OS === 'android' ? StatusBar.currentHeight : 0,
   },
   image: {
     width: '100%',

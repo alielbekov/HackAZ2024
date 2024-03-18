@@ -30,7 +30,16 @@ export default function App() {
           options={{headerShown: false}}>
           {() => <LandingScreen navigationRef={navigationRef}/>}
         </Stack.Screen>
-        <Stack.Screen name="Join">
+        <Stack.Screen 
+        name="Join"
+        options={() => ({
+            headerTitle: "",
+            headerTintColor: 'white',
+            headerShadowVisible: false,
+            headerStyle: {
+                backgroundColor: '#184e77',
+            }
+        })}>
           {() => <JoinRoomScreen navigationRef={navigationRef}/>}
         </Stack.Screen>
         <Stack.Screen
