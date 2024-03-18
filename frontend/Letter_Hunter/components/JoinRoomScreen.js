@@ -1,7 +1,9 @@
-import {Pressable, SafeAreaView, StatusBar, StyleSheet, Text, TextInput, View} from "react-native";
+import {SafeAreaView, StyleSheet, Text, TextInput, View, Platform} from "react-native";
 import {useState} from "react";
 import {getJoinRoom} from "../api/endpoints";
 import {toastError, toastErrorWithMsg} from "./Toasts";
+import {globalStyles} from "../styles/globalStyles";
+import { TouchableOpacity } from "react-native-web";
 
 export const JoinRoomScreen = ({navigationRef}) => {
   const [roomId, setRoomId] = useState("");
@@ -29,25 +31,24 @@ export const JoinRoomScreen = ({navigationRef}) => {
 
   return (
     <SafeAreaView style={styles.container}>
-      <StatusBar backgroundColor='#25292e'/>
-      <View style={styles.titleContainer}>
-        <Text style={{color: "white", fontSize: 48}}>Join a room</Text>
-      </View>
-      <View style={styles.buttonContainer}>
-        <TextInput
-          style={styles.textInput}
-          placeholder="Type room id here"
-          value={roomId}
-          onChangeText={(value) => {
-            setRoomId(value.toUpperCase());
-          }}
-        />
-      </View>
-      <View style={styles.buttonContainer}>
-        <Pressable style={[styles.button, {backgroundColor: "#FFF000"}]} onPress={joinARoom}>
-          <Text style={styles.buttonLabel}>Join Room</Text>
-        </Pressable>
-      </View>
+        <View style={styles.titleContainer}>
+            <Text style={[styles.title, globalStyles.text]}>Join a Room</Text>
+        </View>
+        <View style={styles.buttonContainer}>
+            <TextInput
+                style={styles.textInput}
+                placeholder="Type room id here"
+                value={roomId}
+                onChangeText={(value) => {
+                setRoomId(value.toUpperCase());
+                }}
+            />
+        </View>
+        <View style={styles.buttonContainer}>
+            <TouchableOpacity style={[styles.button, {backgroundColor: "#457EE5"}]} onPress={joinARoom}>
+                <Text style={[styles.buttonLabel, globalStyles.text]}>Join Room</Text>
+            </TouchableOpacity>
+        </View>
     </SafeAreaView>
   );
 };
@@ -55,16 +56,20 @@ export const JoinRoomScreen = ({navigationRef}) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#25292e',
+    backgroundColor: '#184e77',
     alignItems: 'center',
     justifyContent: 'center',
-    // marginTop: Platform.OS === 'android' ? StatusBar.currentHeight : 0,
+    marginTop: Platform.OS === 'android' ? StatusBar.currentHeight : 0,
   },
   titleContainer: {
-    flex: 1 / 9,
+    flex: 1 / 2,
     alignItems: 'center',
     justifyContent: 'center',
   },
+  title: {
+    color: "#ffea00",
+    fontSize: 60,
+},
   buttonContainer: {
     width: 320,
     height: 100,
@@ -76,7 +81,7 @@ const styles = StyleSheet.create({
   },
   button: {
     backgroundColor: "#aaa",
-    borderRadius: 5,
+    borderRadius: 20,
 
     width: '100%',
     height: '100%',
@@ -85,17 +90,19 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
   },
   textInput: {
-    backgroundColor: "#aaa",
-    borderRadius: 5,
+    backgroundColor: "white",
+    borderRadius: 10,
     width: '100%',
     height: '100%',
     alignItems: 'center',
     justifyContent: 'center',
     textAlign: "center",
     fontSize: 28,
+    borderColor: 'green',
+    borderWidth: 4,
   },
   buttonLabel: {
-    color: '#000',
+    color: '#ffe8d6',
     fontSize: 48,
   },
 });

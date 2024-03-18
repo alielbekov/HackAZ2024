@@ -1,5 +1,5 @@
 import React, {useState, useEffect} from 'react';
-import {StyleSheet, Text, View, Image, StatusBar, ScrollView} from 'react-native';
+import {StyleSheet, Text, View, Image, StatusBar, ScrollView, Platform} from 'react-native';
 import Button from './Button';
 import {WordProgress} from "./WordProgress";
 import {postImage, getFoundLetters} from "../api/endpoints";
@@ -179,7 +179,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#184e77',
     alignItems: 'center',
     justifyContent: 'center',
-    // marginTop: Platform.OS === 'android' ? StatusBar.currentHeight : 0,
+    marginTop: Platform.OS === 'android' ? StatusBar.currentHeight : 0,
   },
   imageContainer: {
     // flex: 1,
