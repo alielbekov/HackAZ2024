@@ -57,8 +57,15 @@ const storage = multer.diskStorage({
         cb(null, roomUploadDir);
     },
     filename: function(req, file, cb) {
-        // Generate a unique file name as before
-        cb(null, file.fieldname + '-' + Date.now() + '.' + file.originalname.split('.').pop());
+        // Include userId in the filename
+        const userId = req.body.userId || req.params.userId; // Ensure userId is passed correctly
+        if (!userId) {
+            return cb(new Error('User ID is missing'), false);
+        }
+        // Generate a unique file name with userId
+        const fileExtension = file.originalname.split('.').pop();
+        const filename = `${file.fieldname}-${userId}-${Date.now()}.${fileExtension}`;
+        cb(null, filename);
     }
 });
 
@@ -83,29 +90,36 @@ app.post('/image', upload.single('image'), async (req, res) => {
         try {
             let imagePath;
             if (req.file) {
-                imagePath = req.file.path;
+                // If you're using multer, the file has already been saved at this point.
+                // To include userId in the filename for multer uploads, you'd need to rename the file here.
+                const newFilename = `${userId}-${req.file.filename}`;
+                const newPath = path.join(req.file.destination, newFilename);
+                fs.renameSync(req.file.path, newPath);
+                imagePath = newPath;
             } else if (req.body.imageBase64) {
-                // Decode Base64 image
+                // For Base64, include the userId directly in the filename as you save it.
                 const base64Data = req.body.imageBase64.split(';base64,').pop();
-                imagePath = `${uploadDir}${roomId}-${Date.now()}.jpg`;
+                imagePath = `${uploadDir}${roomId}-${userId}-${Date.now()}.jpg`;
                 fs.writeFileSync(imagePath, base64Data, {encoding: 'base64'});
             } else {
                 return res.status(400).json({ error: 'No file uploaded, URI, or Base64 data provided.' });
             }
-            // OCR or other processing can go here
+            // OCR processing and further logic...
             const ocrResult = await ocrSpace(imagePath, { apiKey: process.env.OCR_API_KEY });
-            // Process and respond as necessary
             const letters = ocrResult.ParsedResults[0].ParsedText.replace(/[^a-zA-Z]/g, '').toLowerCase().split('');
-            const userColor = room.users.get(userId).color; // Get the user's color
+            let scoreIncrement = 0; // Initialize score increment
             letters.forEach(letter => {
-                if (!room.lettersFound.has(letter)) {
-                    room.lettersFound.set(letter, userColor); // Associate the letter with the user's color
+                if (!room.lettersFound.has(letter) && room.currentWord.includes(letter)) {
+                    room.lettersFound.set(letter, room.users.get(userId).color); // Associate the letter with the user's color
+                    scoreIncrement += 1; // Increment score for each new correct letter found
                 }
             });
-
+            // Update user's score
+            const user = room.users.get(userId);
+            user.score += scoreIncrement; // Update score based on found letters
+            // Check if game is over
             const gameStatus = isGameOver(room.lettersFound, room.currentWord);
-            
-            res.status(200).json({status: 'success', isGameOver: gameStatus});
+            res.status(200).json({status: 'success', isGameOver: gameStatus, scoreIncrement: scoreIncrement, totalScore: user.score});
         } catch (error) {
             console.error('Error:', error);
             res.status(500).json({ error: 'Internal server error' });
@@ -310,7 +324,6 @@ io.on('connection', (socket) => {
 
     socket.on('joinRoom', ({ roomId, userId }) => {
         socket.join(roomId);
-        const updatedPlayerNumber = rooms.get(roomId).users.size;
         const users = rooms.get(roomId).users;
         const usersObj = Object.fromEntries(users);
         console.log(usersObj);
@@ -333,9 +346,11 @@ io.on('connection', (socket) => {
     });
 
     socket.on('gameOver', async ({ roomId }) => {
-        const imagesList = await getImagesForTheRoom(roomId);
-        io.to(roomId).emit('gameOver', { imagesList });
+        const users = rooms.get(roomId).users;
+        const usersObj = Object.fromEntries(users);
+        io.to(roomId).emit('gameOver', { usersObj });
     });
+    
 
     // Handling disconnection
     socket.on('disconnect', () => {

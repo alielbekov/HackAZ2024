@@ -1,7 +1,8 @@
 import React, {useState, useEffect} from 'react';
-import {StyleSheet, Text, View, Image, StatusBar, ScrollView} from 'react-native';
+import {StyleSheet, Text, View, Image, StatusBar, ScrollView, Modal} from 'react-native';
 import Button from './Button';
 import {WordProgress} from "./WordProgress";
+import GameOverModal from "./GameOverModal";
 import {postImage, getFoundLetters} from "../api/endpoints";
 
 const cameraPlaceholder = require('../assets/cam-placeholder.png');
@@ -16,6 +17,9 @@ export default function GamePage({route, navigation}) {
   const [foundLetters, setFoundLetters] = useState([]);
   const [roomId, setRoomId] = useState('');
   const [userId, setUserId] = useState('');
+  const [modalVisible, setModalVisible] = useState(false);
+  const [usersObj, setUsersObj] = useState({});
+
 
 
   useEffect(() => {
@@ -39,9 +43,9 @@ export default function GamePage({route, navigation}) {
     };
 
     const handleGameOver = (data) => {
-      const {imagesList} = data;
-      console.log(imagesList);
-      console.log('Game Over!');
+      const {usersObj} = data;
+      setUsersObj(usersObj); // Assuming the server sends the users object correctly
+      setModalVisible(true); // Show the modal
     };
 
     // Set up socket event listeners
@@ -146,8 +150,12 @@ export default function GamePage({route, navigation}) {
         <View style={styles.titleContainer}>
           <Text style={[styles.title, globalStyles.text]}>Find Letters</Text>
         </View>
-
-        <View style={styles.currentWord}>
+        <GameOverModal
+            visible={modalVisible}
+            usersObj={usersObj}
+            onClose={() => setModalVisible(false)}
+          />
+          <View style={styles.currentWord}>
           <WordProgress foundLetters={foundLetters} roomId={roomId}/>
         </View>
         <View style={styles.imageContainer}>

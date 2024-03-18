@@ -2,8 +2,8 @@
 import io from "socket.io-client";
 
 // Replace this URL with your server's URL
-//const SOCKET_URL = "http://137.184.74.25:3000";
-const SOCKET_URL = "http://localhost:3000";
+const SOCKET_URL = "http://137.184.74.25:3000";
+//const SOCKET_URL = "http://localhost:3000";
 
 const socket = io(SOCKET_URL, {
   // Enables auto reconnection
