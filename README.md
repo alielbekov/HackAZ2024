@@ -1,11 +1,10 @@
 # HackAZ2024 - Letter Hunter
 ## Overview
-Letter Hunter is an exciting mobile game that challenges players to find and capture words in real-world surroundings. Developed during the HackAZ2024 hackathon, this game utilizes augmented reality to create an immersive experience.
+Letter Hunter is an exciting mobile game that challenges players to find and capture words in real-world surroundings. Developed during the HackAZ2024 hackathon, this game utilizes the camera to create an immersive experience.
 
 ## Technologies
 - **Frontend:** React-Native, with a well-organized structure including components such as Buttons, Modals, Game pages, and more.
 - **Backend:** Node.js with Express, leveraging WebSockets for real-time communication and REST-API for service interaction.
-- **Database:** None (Could use MongoDB, but that is too much)
 - **Others:** HTML, CSS, JavaScript, and native device features like camera integration.
 
 ## Features
