@@ -2,7 +2,8 @@ import {Pressable, SafeAreaView, StatusBar, StyleSheet, Text, TextInput, View} f
 import {useState} from "react";
 import {getJoinRoom} from "../api/endpoints";
 import {toastError, toastErrorWithMsg} from "./Toasts";
-export const JoinRoomScreen = ({ navigationRef }) => {
+
+export const JoinRoomScreen = ({navigationRef}) => {
   const [roomId, setRoomId] = useState("");
 
   // Don't allow call to navigate in async function.

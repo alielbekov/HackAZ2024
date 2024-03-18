@@ -31,26 +31,19 @@ export const WordProgress = ({foundLetters, roomId}) => {
     fetchWord();
   }, [roomId]); // Use roomId in the dependency array
 
-  return (
-    <View style={styles.wordContainer}>
+  return (<View style={styles.wordContainer}>
       {[...word].map((character, index) => {
         const found = foundLetters.find((x) => x === character.toLowerCase()) !== undefined;
         return <Text key={index}
                      style={[styles.textStyle, found && {color: "white"}, !found && {color: "#555"}]}>{character}</Text>;
       })}
-    </View>
-  );
+    </View>);
 };
 
 const styles = StyleSheet.create({
   wordContainer: {
-    height: "100%",
-    flexDirection: "row",
-    flexWrap: 'wrap',
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  textStyle: {
+    height: "100%", flexDirection: "row", flexWrap: 'wrap', alignItems: "center", justifyContent: "center",
+  }, textStyle: {
     fontSize: 30,
   }
 });
