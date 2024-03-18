@@ -271,12 +271,18 @@ function generateRandomColor() {
 io.on('connection', (socket) => {
     console.log('A user connected', socket.id);
 
-    // Join a specific room
     socket.on('joinRoom', ({ roomId, userId }) => {
         console.log(`User ${userId} joined room ${roomId}`);
-        io.to(roomId).emit('newPlayer', userId);
         socket.join(roomId);
+        const updatedPlayerNumber = rooms.get(roomId).users.size;
+        io.to(roomId).emit('updatePlayerNumber', updatedPlayerNumber);
+        console.log(`Updated player number for room ${roomId}: ${updatedPlayerNumber}`);
     });
+
+    socket.on('startGame', ({ roomId }) => {
+        io.to(roomId).emit('startGame');
+    });
+    
 
     socket.on('lettersUpdated', ({ roomId }) => {
         console.log(`lettersUpdated ${roomId}`);
