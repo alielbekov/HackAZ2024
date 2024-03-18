@@ -1,21 +1,35 @@
-import React, { useState, useEffect } from 'react';
-import {StyleSheet, Text, View, Image, StatusBar, TouchableOpacity, SafeAreaView} from 'react-native';
+
+import React, { useState, useEffect, useLayoutEffect } from 'react';
+import { StyleSheet, Text, View, Image, StatusBar, TouchableOpacity, SafeAreaView, Alert, ScrollView, Dimensions } from 'react-native';
 // import Clipboard from '@react-native-clipboard/clipboard'; // Updated import
 import Button from './Button';
 import { WordProgress } from "./WordProgress";
 import {postImage, getFoundLetters} from "../api/endpoints";
-const PlaceholderImage = require('../assets/road-1072821_1920.jpg');
+const cameraPlaceholder = require('../assets/cam-placeholder.png');
 import socket from '../socket/socketService'
 import Toast from "react-native-toast-message";
 import {toastError, toastErrorWithMsg} from "./Toasts";
 import {readAsStringAsync} from "expo-file-system";
+import {globalStyles} from "../styles/globalStyles";
 
-export default function GamePage({route}) {
+
+
+export default function GamePage({route, navigation}) {
     const [imageUri, setImageUri] = useState(null);
     const [foundLetters, setFoundLetters] = useState([]);
     const [roomId, setRoomId] = useState('');
     const [userId, setUserId] = useState('');
 
+    
+    useEffect(() => {
+        navigation.setOptions({
+            headerRight: () => (
+                <View style={{backgroundColor: '#2a9d8f', borderRadius: 17, padding: 10, justifyContent:'center', margin: '10px'}}>
+                    <Text style={[{color: '#ffe8d6', fontSize: 18}, globalStyles.text]}>Room Id: {roomId}</Text>
+                </View>
+            ),
+        });
+    }, [navigation, roomId]);
     useEffect(() => {
       const handleNewPlayer = (userId) => {
           console.log('New Player joined:', userId);
@@ -65,12 +79,14 @@ export default function GamePage({route}) {
     }, [roomId]); // Depend on roomId to ensure it's set before calling
     const copyToClipboard = () => {
         // Clipboard.setString(roomId);
+        // Alert.alert('Copied', 'Room ID has been copied to clipboard.');
         Toast.show({
-          type: "success",
-          text1: 'Copied',
-          text2: 'Room ID has been copied to clipboard.'
-        });
+            type: "success",
+            text1: 'Copied',
+            text2: 'Room ID has been copied to clipboard.'
+          });
     };
+    
 
     const uploadImage = async (uri) => {
       const response = await postImage({
@@ -138,35 +154,43 @@ export default function GamePage({route}) {
 
 
     return (
-      <SafeAreaView style={styles.container}>
-          <StatusBar backgroundColor="#25292e" />
-          <View>
-              <Text style={{ color: "white" }}>Letter Hunter</Text>
-          </View>
-          <View style={styles.roomIdContainer}>
-              <Text style={styles.roomIdText}>Room ID: {roomId}</Text>
-              <TouchableOpacity onPress={copyToClipboard} style={styles.copyButton}>
-                  <Text style={styles.copyButtonText}>Copy</Text>
-              </TouchableOpacity>
-          </View>
-          <View style={styles.currentWord}>
-              <WordProgress foundLetters={foundLetters} roomId={roomId} />
-          </View>
-          <View style={styles.imageContainer}>
-              <Image source={imageUri ? { uri: imageUri } : PlaceholderImage} style={styles.image} resizeMode="cover" />
-          </View>
-          <View style={styles.footerContainer}>
-              <Button theme="primary" label="Take a photo" onImagePicked={handleImage} />
-          </View>
-      </SafeAreaView>
+        <ScrollView contentContainerStyle={styles.scrollViewContainer} style={{flex: 1}}>
+            <View style={styles.container}>
+                <StatusBar backgroundColor="#25292e" />
+                <View style={styles.titleContainer}>
+                        <Text style={[styles.title, globalStyles.text]}>Find Letters</Text>
+                </View>
+               
+                <View style={styles.currentWord}>
+                    <WordProgress foundLetters={foundLetters} roomId={roomId} />
+                </View>
+                <View style={styles.imageContainer}>
+                    <Image source={imageUri ? { uri: imageUri } : cameraPlaceholder} style={styles.image} resizeMode="cover" />
+                </View>
+                {/* <View style={styles.serverResponse}>
+                    <Text style={{ padding: 5 }}>Server Response: {serverResponse}</Text>
+                </View> */}
+                <View style={styles.footerContainer}>
+                    <Button theme="primary" label="Take a photo" onImagePicked={handleImage} />
+                </View>
+        </View>
+    </ScrollView>
 
   );
 }
 
 const styles = StyleSheet.create({
+
+    scrollViewContainer: {
+        flexGrow: 1,
+        alignItems: 'center',
+        justifyContent: 'center',
+        backgroundColor:'yellow',
+      },
     container: {
       flex: 1,
-      backgroundColor: '#25292e',
+      width: '100%',
+      backgroundColor: '#184e77',
       alignItems: 'center',
       justifyContent: 'center',
       // marginTop: Platform.OS === 'android' ? StatusBar.currentHeight : 0,
@@ -178,7 +202,6 @@ const styles = StyleSheet.create({
       height: 440,
       alignItems: 'center',
       justifyContent: 'center',
-      // backgroundColor: 'lightgreen',
     },
     image: {
       width: '100%',
@@ -187,16 +210,31 @@ const styles = StyleSheet.create({
     },
     footerContainer: {
       flex: 1 / 3,
-      marginTop: 50,
+      marginTop: 30,
       alignItems: 'center',
+      marginBottom: 20,
     },
     currentWord: {
-      flex: 1 / 5,
-      minWidth: 200,
-    },
+        flexWrap: 'wrap', // Encourage wrapping
+        flexDirection: 'row', // Layout children in a row; adjust as needed
+        minWidth: 200,
+        maxWidth: '90%', // Prevent it from exceeding the screen width
+        alignItems: 'center', // Center items for aesthetics; adjust as needed
+        justifyContent: 'center', // Center content horizontally; adjust as needed
+        padding: 5, // Add some padding to prevent text from touching edges
+        marginBottom: 10,
+    },      
     word: {
       fontSize: 30,
       fontWeight: 'bold',
+    },
+    titleContainer: {
+        marginTop: 20,
+    },
+    title:{ 
+        color: "white", 
+        fontSize: 45, 
+        color: '#ffea00' 
     }
   });
   

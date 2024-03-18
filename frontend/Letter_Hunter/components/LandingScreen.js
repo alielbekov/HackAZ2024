@@ -67,8 +67,8 @@ const styles = StyleSheet.create({
     },
     logoContainer: {
         flex: 7 / 9,
-        alignItems: 'center',
-        justifyContent: 'center',
+        justifyContent: "center",
+        // backgroundColor: 'white',
     },
     buttonContainer: {
         width: 320,
@@ -97,5 +97,6 @@ const styles = StyleSheet.create({
     textFont: {
         fontSize: 100,
         color: '#ffea00',
+        textAlign: 'center',
     },
 });

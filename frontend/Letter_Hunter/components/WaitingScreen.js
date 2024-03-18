@@ -46,7 +46,7 @@ export const WaitingScreen = ({ navigationRef, route }) => {
     <SafeAreaView style={styles.container}>
       <View style={styles.titleContainer}>
         <Pressable style={styles.button} onPress={() => console.log("todo: save to clipboard")}>
-          <Text style={[styles.buttonLabel, globalStyles.text]}>{`Room ID: ${route.params.roomId}`}</Text>
+          <Text style={[styles.titleLabel, globalStyles.text]}>{`Room ID: ${route.params.roomId}`}</Text>
         </Pressable>
       </View>
       <View style={styles.statusContainer}>
@@ -64,7 +64,7 @@ export const WaitingScreen = ({ navigationRef, route }) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#25292e',
+    backgroundColor: '#184e77',
     alignItems: 'center',
     justifyContent: 'center',
     // marginTop: Platform.OS === 'android' ? StatusBar.currentHeight : 0,
@@ -91,7 +91,7 @@ const styles = StyleSheet.create({
   },
   button: {
     backgroundColor: "#FFF000",
-    borderRadius: 5,
+    borderRadius: 10,
 
     width: '100%',
     height: 68,
@@ -111,11 +111,15 @@ const styles = StyleSheet.create({
   },
   label: {
     color: '#fff',
-    fontSize: 20,
+    fontSize: 35,
     margin: 20,
   },
-  buttonLabel: {
+  titleLabel: {
     color: '#000',
     fontSize: 30,
+  },
+  buttonLabel: {
+    color: '#ffe8d6',
+    fontSize: 23,
   },
 });
