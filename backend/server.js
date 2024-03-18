@@ -272,11 +272,9 @@ io.on('connection', (socket) => {
     console.log('A user connected', socket.id);
 
     socket.on('joinRoom', ({ roomId, userId }) => {
-        console.log(`User ${userId} joined room ${roomId}`);
         socket.join(roomId);
         const updatedPlayerNumber = rooms.get(roomId).users.size;
         io.to(roomId).emit('updatePlayerNumber', updatedPlayerNumber);
-        console.log(`Updated player number for room ${roomId}: ${updatedPlayerNumber}`);
     });
 
     socket.on('startGame', ({ roomId }) => {
@@ -285,13 +283,10 @@ io.on('connection', (socket) => {
     
 
     socket.on('lettersUpdated', ({ roomId }) => {
-        console.log(`lettersUpdated ${roomId}`);
         io.to(roomId).emit('lettersUpdated', Array.from(rooms.get(roomId).lettersFound));
     });
 
     socket.on('updatePlayerNumber', (roomId) => {
-        console.log(`updatePlayerNumber ${roomId}`);
-        console.log(rooms.get(roomId).users.size);
         io.to(roomId).emit('updatePlayerNumber', rooms.get(roomId).users.size);
     });
 
