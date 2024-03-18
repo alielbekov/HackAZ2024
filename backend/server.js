@@ -274,7 +274,10 @@ io.on('connection', (socket) => {
     socket.on('joinRoom', ({ roomId, userId }) => {
         socket.join(roomId);
         const updatedPlayerNumber = rooms.get(roomId).users.size;
-        io.to(roomId).emit('updatePlayerNumber', updatedPlayerNumber);
+        const users = rooms.get(roomId).users;
+        const usersObj = Object.fromEntries(users);
+        console.log(usersObj);
+        io.to(roomId).emit('updatePlayerNumber', usersObj);
     });
 
     socket.on('startGame', ({ roomId }) => {
