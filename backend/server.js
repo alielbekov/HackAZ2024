@@ -8,7 +8,9 @@ const uploadDir = 'uploads/';
 const path = require('path');
 const cors = require('cors');
 const { v4: uuidv4 } = require('uuid');
-const faker = require('faker');
+//const faker = require('faker');
+
+const {generateUsername } = require("unique-username-generator");
 const http = require('http');
 const { Server } = require("socket.io");
 const app = express();
@@ -151,13 +153,14 @@ app.get("/start", (req, res) => {
     const userId = uuidv4();
     let roomId = generateAlphanumericId();
     const color = generateRandomColor();
-    const new_user = new User(faker.name.findName(), color);
+    const new_user = new User(generateUsername(), color);
     rooms.set(roomId, {
         lettersFound: new Set(),
         currentWord: "abcdefghijklmnopqrstuvwxyz",
         users: new Map()
     });
     rooms.get(roomId).users.set(userId, new_user);
+    console.log(rooms.get(roomId))
     res.json({ roomId, userId });
 });
 
@@ -166,13 +169,24 @@ app.get("/join/:roomID", (req, res) => {
     const roomId = req.params.roomID;
     if(rooms.has(roomId)){
         const room = rooms.get(roomId);
-        const new_user = new User(faker.name.findName(), color);
+        const new_user = new User(generateUsername(), generateRandomColor());
         room.users.set(userId, new_user);
         res.json({ roomId, userId });
     }else{
         res.status(404).json({ error: 'Room not found' });
     }
 });
+
+app.get("/get-room-info/:roomId", (req, res) => {
+    const roomId = req.params.roomId;
+    if(rooms.has(roomId)){
+        const room = rooms.get(roomId);
+        console.log(room);
+        res.json({ room });
+    }else{
+        res.status(404).json({ error: 'Room not found' });
+    }  
+ });
 
 // Generate Random Colors
 app.get('/get-color/:roomId/:userId', (req, res) => {
@@ -205,20 +219,6 @@ async function getImagesForTheRoom(roomId){
     return images;
 
 }
-
-// Create a new room
-app.post('/create-room', (req, res) => {
-    const roomId = generateRoomId();
-    rooms.set(roomId, { 
-        lettersFound: new Set(), 
-        currentWord: "", 
-        currentSentence: "", 
-        users: new Set() // Track users in the room
-    });
-    res.json({ roomId });
-});
-
-
 
 // Leave a room
 app.post('/leave-room', (req, res) => {
@@ -274,17 +274,19 @@ io.on('connection', (socket) => {
     // Join a specific room
     socket.on('joinRoom', ({ roomId, userId }) => {
         console.log(`User ${userId} joined room ${roomId}`);
-        // inform all the users
-        //get all the userIDs in the room
-
         io.to(roomId).emit('newPlayer', userId);
         socket.join(roomId);
-
     });
+
     socket.on('lettersUpdated', ({ roomId }) => {
         console.log(`lettersUpdated ${roomId}`);
-    
         io.to(roomId).emit('lettersUpdated', Array.from(rooms.get(roomId).lettersFound));
+    });
+
+    socket.on('updatePlayerNumber', (roomId) => {
+        console.log(`updatePlayerNumber ${roomId}`);
+        console.log(rooms.get(roomId).users.size);
+        io.to(roomId).emit('updatePlayerNumber', rooms.get(roomId).users.size);
     });
 
     socket.on('gameOver', async ({ roomId }) => {
