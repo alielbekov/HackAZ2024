@@ -3,7 +3,6 @@ import {useEffect, useState} from "react";
 import {globalStyles} from "../styles/globalStyles";
 import socket from '../socket/socketService'
 
-
 export const WaitingScreen = ({navigationRef, route}) => {
   const [numPlayers, setNumPlayers] = useState(0);
   const [currentUser, setCurrentUser] = useState({ name: '', color: '' });
@@ -12,7 +11,6 @@ export const WaitingScreen = ({navigationRef, route}) => {
   useEffect(() => {
     // Emit joinRoom event as soon as the component mounts
     socket.emit('joinRoom', {roomId: route.params.roomId, userId: route.params.userId});
-
     const updatePlayerNumber = (users) => {
       const usersMap = new Map(Object.entries(users));
       const playerNumber = usersMap.size;

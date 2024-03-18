@@ -207,7 +207,6 @@ app.post('/leave-room', (req, res) => {
     }
 });
 
-
 function generateAlphanumericId() {
     const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
     let id = '';
@@ -261,13 +260,10 @@ function hsvToRgb(h, s, v) {
     };
 }
 
-
 function componentToHex(c) {
     const hex = c.toString(16);
     return hex.length == 1 ? "0" + hex : hex;
 }
-
-
 
 io.on('connection', (socket) => {
     console.log('A user connected', socket.id);
@@ -284,13 +280,11 @@ io.on('connection', (socket) => {
         io.to(roomId).emit('startGame');
     });
     
-
     socket.on('lettersUpdated', ({ roomId }) => {
         const lettersFound = Array.from(rooms.get(roomId).lettersFound).map(([letter, color]) => ({ letter, color }));
         io.to(roomId).emit('lettersUpdated', lettersFound);
     });
     
-
     socket.on('updatePlayerNumber', (roomId) => {
         io.to(roomId).emit('updatePlayerNumber', rooms.get(roomId).users.size);
     });
