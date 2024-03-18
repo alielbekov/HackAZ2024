@@ -71,3 +71,6 @@ This project is licensed under the MIT License - see the LICENSE.md file for det
 - A huge thank you to all the participants and contributors who have invested their time and effort into this project.
 
 https://github.com/alielbekov/HackAZ2024/assets/83210137/0fe95758-062c-418e-81e0-ecb0fc294b1a
+
+[Youtube Demo](https://www.youtube.com/watch?v=3WYRJYX7irk)
+
