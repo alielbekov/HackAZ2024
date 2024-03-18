@@ -1,7 +1,4 @@
 # HackAZ2024 - Letter Hunter
-<p align="center">
-  <img src="https://github.com/alielbekov/HackAZ2024/assets/83210137/0fe95758-062c-418e-81e0-ecb0fc294b1a" alt="Letter Hunter Image">
-</p>
 ## Overview
 Letter Hunter is an exciting mobile game that challenges players to find and capture words in real-world surroundings. Developed during the HackAZ2024 hackathon, this game utilizes augmented reality to create an immersive experience.
 
@@ -73,3 +70,5 @@ This project is licensed under the MIT License - see the LICENSE.md file for det
 ## Acknowledgments
 - Kudos to the HackAZ2024 organizers for their support and for setting up such a creative environment.
 - A huge thank you to all the participants and contributors who have invested their time and effort into this project.
+
+https://github.com/alielbekov/HackAZ2024/assets/83210137/0fe95758-062c-418e-81e0-ecb0fc294b1a
