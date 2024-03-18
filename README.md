@@ -6,11 +6,10 @@ Letter Hunter is an exciting mobile game that challenges players to find and cap
 ## Technologies
 - **Frontend:** React-Native, with a well-organized structure including components such as Buttons, Modals, Game pages, and more.
 - **Backend:** Node.js with Express, leveraging WebSockets for real-time communication and REST-API for service interaction.
-- **Database:** (if a database was used, please mention here)
+- **Database:** None (Could use MongoDB, but that is too much)
 - **Others:** HTML, CSS, JavaScript, and native device features like camera integration.
 
 ## Features
-- Augmented reality gameplay that allows players to find letters and words in their environment.
 - Multiplayer functionality where players can join rooms and play with friends.
 - Levels with increasing difficulty and complexity.
 - Real-time score tracking, leaderboards, and progress updates.
@@ -42,12 +41,12 @@ cd frontend
 ```bash
 npm install
 ```
-7. Start the React Native app:
+8. Start the React Native app using Expo:
 ```bash
-npm start
+npx expo start
 ```
 
-Note: Ensure you have Node.js installed on your system to use `npm` commands.
+Note: Ensure you have Node.js and expo installed on your system to use `npm` commands.
 
 ## How to Play
 - Launch the app on your device.
