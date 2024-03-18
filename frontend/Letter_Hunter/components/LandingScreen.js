@@ -54,7 +54,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#25292e',
     alignItems: 'center',
     justifyContent: 'center',
-    marginTop: Platform.OS === 'android' ? StatusBar.currentHeight : 0,
+    marginTop: Platform.OS === 'android' ? 0 : StatusBar.currentHeight,
   },
   image: {
     width: '100%',

@@ -1,9 +1,8 @@
-import {SafeAreaView, StyleSheet, Text, TextInput, View, Platform, StatusBar} from "react-native";
+import {SafeAreaView, StyleSheet, Text, TextInput, View, Platform, StatusBar, TouchableOpacity} from "react-native";
 import {useState} from "react";
 import {getJoinRoom} from "../api/endpoints";
 import {toastError, toastErrorWithMsg} from "./Toasts";
 import {globalStyles} from "../styles/globalStyles";
-import { TouchableOpacity } from "react-native-web";
 
 export const JoinRoomScreen = ({navigationRef}) => {
   const [roomId, setRoomId] = useState("");
@@ -59,7 +58,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#184e77',
     alignItems: 'center',
     justifyContent: 'center',
-    marginTop: Platform.OS === 'android' ? StatusBar.currentHeight : 0,
+    marginTop: Platform.OS === 'android' ? 0 : StatusBar.currentHeight,
   },
   titleContainer: {
     flex: 1 / 2,

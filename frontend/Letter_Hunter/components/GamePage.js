@@ -186,7 +186,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#184e77',
     alignItems: 'center',
     justifyContent: 'center',
-    marginTop: Platform.OS === 'android' ? StatusBar.currentHeight : 0,
+    marginTop: Platform.OS === 'android' ? 0 : StatusBar.currentHeight,
   },
   imageContainer: {
     // flex: 1,
