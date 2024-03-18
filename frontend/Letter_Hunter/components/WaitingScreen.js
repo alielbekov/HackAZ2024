@@ -58,7 +58,7 @@ export const WaitingScreen = ({navigationRef, route}) => {
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.titleContainer}>
-        <Pressable style={styles.button} onPress={() => console.log("todo: save to clipboard")}>
+        <Pressable style={styles.button}>
           <Text style={[styles.titleLabel, globalStyles.text]}>{`Room ID: ${route.params.roomId}`}</Text>
         </Pressable>
       </View>

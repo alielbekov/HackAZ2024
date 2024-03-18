@@ -8,14 +8,11 @@ export const WordProgress = ({ foundLetters, roomId }) => {
 
     useEffect(() => {
         const fetchWord = async () => {
-            console.log("Attempting to fetch word with roomId:", roomId); // Debugging log
             if (!roomId) {
-                console.log("No roomId available, skipping fetch");
                 return; // Early return if roomId is not available
             }
 
             const response = await fetchGetWord(roomId).catch(toastError);
-
             if (response === undefined) {
                 return;
             }
