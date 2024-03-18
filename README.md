@@ -6,10 +6,10 @@ Letter Hunter is an engaging mobile game developed during the HackAZ2024 hackath
 ## Technologies
 - **Frontend:** React-Native
 - **Backend:** Node.js
-- **Tools and Others**
+- **Tools and Others** HTML, CSS, JavaScript, WebSockets, REST-API
 
 ## Features
-- Interactive gameplay that involves
+- Interactive gameplay that involves capturing words
 - Levels with increasing difficulty.
 - Real-time score tracking and user progress.
 
