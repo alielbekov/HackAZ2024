@@ -7,12 +7,15 @@ import { WordProgress } from "./WordProgress";
 import {postImage, getFoundLetters} from "../api/endpoints";
 const cameraPlaceholder = require('../assets/cam-placeholder.png');
 import socket from '../socket/socketService'
+import Toast from "react-native-toast-message";
+import {toastError, toastErrorWithMsg} from "./Toasts";
+import {readAsStringAsync} from "expo-file-system";
 import {globalStyles} from "../styles/globalStyles";
+
 
 
 export default function GamePage({route, navigation}) {
     const [imageUri, setImageUri] = useState(null);
-    const [serverResponse, setServerResponse] = useState('');
     const [foundLetters, setFoundLetters] = useState([]);
     const [roomId, setRoomId] = useState('');
     const [userId, setUserId] = useState('');
@@ -77,66 +80,76 @@ export default function GamePage({route, navigation}) {
     const copyToClipboard = () => {
         // Clipboard.setString(roomId);
         // Alert.alert('Copied', 'Room ID has been copied to clipboard.');
+        Toast.show({
+            type: "success",
+            text1: 'Copied',
+            text2: 'Room ID has been copied to clipboard.'
+          });
     };
+    
 
     const uploadImage = async (uri) => {
-        try {
-          const response = await postImage({
-            imageBase64: uri,
-            roomId: roomId,
-            userId: userId
-          });
-    
-          // if (!response.ok) {
-          //   throw new Error(`Server responded with ${response.status}: ${response.statusText}`);
-          // }
-          if (response.status !== 200) {
-            throw new Error(`Server responded with ${response.status}: ${response.statusText}`);
-          }else{
-            response.json().then((data) => {
-              const {isGameOver} = data;
-              if(isGameOver){
-                console.log('Game Over');
-                socket.emit('gameOver', { roomId });
-              }
+      const response = await postImage({
+        imageBase64: uri,
+        roomId: roomId,
+        userId: userId
+      }).catch(toastError);
 
-
-            });
-            console.log('Image uploaded successfully');
-            socket.emit('lettersUpdated', { roomId });
-          }
-    
-          
-        } catch (error) {
-          console.error('Error uploading image:', error);
-          setServerResponse('Error uploading image:. ' + error.message);
-        }
-      };
-
-    const updateFoundLetters = async () => {
-
-        try {
-          console.log('Updating found letters')
-          const response = await getFoundLetters(roomId);
-    
-          if (!response.ok) {
-            throw new Error(`Server responded with ${response.status}: ${response.statusText}`);
-          }
-    
-          await response.json().then((data) => {
-            setFoundLetters(data.lettersFound);
-          });
-        } catch (error) {
-          console.error('Error updating found letters:', error);
-          setServerResponse('Error updating found letters: ' + error.message);
-        }
+      if (response === undefined) {
+        return;
       }
 
+      if (!response.ok) {
+        toastErrorWithMsg("Error uploading image", new Error(`Server responded with ${response.status}: ${response.statusText}`));
+        return;
+      }
+      
+      response.json().then((data) => {
+        const {isGameOver} = data;
+        if(isGameOver){
+          console.log('Game Over');
+          socket.emit('gameOver', { roomId });
+        }
+      });
+      
+      console.log('Image uploaded successfully');
+      socket.emit('lettersUpdated', { roomId });
+    };
+
+    const updateFoundLetters = async () => {
+      console.log('Updating found letters')
+      const response = await getFoundLetters(roomId).catch(toastError);
+
+      if (response === undefined) {
+        return;
+      }
+
+      if (!response.ok) {
+        toastErrorWithMsg("Error updating found letters", new Error(`Server responded with ${response.status}: ${response.statusText}`));
+        return;
+      }
+
+      await response.json().then((data) => {
+        setFoundLetters(data.lettersFound);
+      });
+    }
 
 
-    const handleImage = (images) => {
-    setImageUri(images.assets[0].uri);
-    uploadImage(images.assets[0].uri); // Additionally upload the image
+
+    const handleImage = async (images) => {
+      setImageUri(images.assets[0].uri);
+      const uri = images.assets[0].uri;
+
+      if (uri.includes("file://")) {
+        console.log(uri);
+        await readAsStringAsync(uri, {
+          encoding: "base64"
+        })
+          .then((data) => uploadImage(`data:image/jpeg;base64,${data}`))
+          .catch(toastError);
+      } else {
+        await uploadImage(uri);
+      }
     };
 
 
@@ -144,17 +157,12 @@ export default function GamePage({route, navigation}) {
         <ScrollView contentContainerStyle={styles.scrollViewContainer} style={{flex: 1}}>
             <View style={styles.container}>
                 <StatusBar backgroundColor="#25292e" />
-                <View>
-                        <Text style={[{ color: "white", fontSize: 45, color: '#ffea00' }, globalStyles.text]}>Find Letters</Text>
+                <View style={styles.titleContainer}>
+                        <Text style={[styles.title, globalStyles.text]}>Find Letters</Text>
                 </View>
-                {/* <View style={styles.roomIdContainer}>
-                    <Text style={styles.roomIdText}>Room ID: {roomId}</Text>
-                    <TouchableOpacity onPress={copyToClipboard} style={styles.copyButton}>
-                        <Text style={styles.copyButtonText}>Copy</Text>
-                    </TouchableOpacity>
-                </View> */}
+               
                 <View style={styles.currentWord}>
-                    <WordProgress foundLetters={foundLetters} setServerResponse={setServerResponse} roomId={roomId} />
+                    <WordProgress foundLetters={foundLetters} roomId={roomId} />
                 </View>
                 <View style={styles.imageContainer}>
                     <Image source={imageUri ? { uri: imageUri } : cameraPlaceholder} style={styles.image} resizeMode="cover" />
@@ -194,25 +202,17 @@ const styles = StyleSheet.create({
       height: 440,
       alignItems: 'center',
       justifyContent: 'center',
-      // backgroundColor: 'lightgreen',
     },
     image: {
       width: '100%',
       height: '100%',
       borderRadius: 20,
     },
-    serverResponse: {
-      // flex: 1,
-      marginTop: 20,
-      backgroundColor: 'white',
-      minHeight: 50,
-      width: 320,
-      borderRadius: 10,
-    },
     footerContainer: {
       flex: 1 / 3,
-      marginTop: 50,
+      marginTop: 30,
       alignItems: 'center',
+      marginBottom: 20,
     },
     currentWord: {
         flexWrap: 'wrap', // Encourage wrapping
@@ -221,11 +221,20 @@ const styles = StyleSheet.create({
         maxWidth: '90%', // Prevent it from exceeding the screen width
         alignItems: 'center', // Center items for aesthetics; adjust as needed
         justifyContent: 'center', // Center content horizontally; adjust as needed
-        padding: 10, // Add some padding to prevent text from touching edges
+        padding: 5, // Add some padding to prevent text from touching edges
+        marginBottom: 10,
     },      
     word: {
       fontSize: 30,
       fontWeight: 'bold',
+    },
+    titleContainer: {
+        marginTop: 20,
+    },
+    title:{ 
+        color: "white", 
+        fontSize: 45, 
+        color: '#ffea00' 
     }
   });
   

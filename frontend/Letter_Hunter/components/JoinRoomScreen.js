@@ -1,20 +1,26 @@
 import {Pressable, SafeAreaView, StatusBar, StyleSheet, Text, TextInput, View} from "react-native";
 import {useState} from "react";
 import {getJoinRoom} from "../api/endpoints";
+import {toastError, toastErrorWithMsg} from "./Toasts";
 
 export const JoinRoomScreen = ({ navigationRef }) => {
   const [roomId, setRoomId] = useState("");
 
   // Don't allow call to navigate in async function.
   const callNavigate = (response) => {
-    navigationRef.navigate("Game", response);
+    navigationRef.navigate("Wait", response);
   };
 
   const joinARoom = async () => {
-    const res = await getJoinRoom(roomId).catch((error) => { console.log(error); });
+    const res = await getJoinRoom(roomId).catch(toastError);
 
-    if (res === undefined || res.status !== 200) {
-      return; // Fixme: report error.
+    if (res === undefined) {
+      return;
+    }
+
+    if (!res.ok) {
+      toastErrorWithMsg("Error starting game", new Error(`HTTP error! status: ${res.status}`));
+      return;
     }
 
     let data = await res.json();
@@ -28,7 +34,14 @@ export const JoinRoomScreen = ({ navigationRef }) => {
         <Text style={{color: "white", fontSize: 48}}>Join a room</Text>
       </View>
       <View style={styles.buttonContainer}>
-        <TextInput style={styles.textInput} placeholder="Type room id here" onChangeText={setRoomId}/>
+        <TextInput
+          style={styles.textInput}
+          placeholder="Type room id here"
+          value={roomId}
+          onChangeText={(value) => {
+            setRoomId(value.toUpperCase());
+          }}
+        />
       </View>
       <View style={styles.buttonContainer}>
         <Pressable style={[styles.button, {backgroundColor: "#FFF000"}]} onPress={joinARoom}>

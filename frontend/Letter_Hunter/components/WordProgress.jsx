@@ -1,9 +1,9 @@
 import {StyleSheet, Text, View} from "react-native";
 import {useEffect, useState} from "react";
-import stringifySafe from "@expo/metro-runtime/build/error-overlay/modules/stringifySafe";
 import {fetchGetWord} from "../api/endpoints";
+import {toastError, toastErrorWithMsg} from "./Toasts";
 
-export const WordProgress = ({foundLetters, setServerResponse, roomId}) => {
+export const WordProgress = ({foundLetters, roomId}) => {
   const [word, setWord] = useState("Placeholder");
   useEffect(() => {
     const fetchWord = async () => {
@@ -13,22 +13,23 @@ export const WordProgress = ({foundLetters, setServerResponse, roomId}) => {
         return; // Early return if roomId is not available
       }
 
-      try {
-        const response = await fetchGetWord(roomId);
-        if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`);
-        }
-        const data = await response.json();
-        setWord(data.currentWord);
-      } catch (error) {
-        console.error('Fetch error:', error);
-        setServerResponse(`Error fetching word: ${error.toString()}`);
+      const response = await fetchGetWord(roomId).catch(toastError);
 
+      if (response === undefined) {
+        return;
       }
+
+      if (!response.ok) {
+        toastErrorWithMsg("Error fetching word", new Error(`HTTP error! status: ${response.status}`));
+        return;
+      }
+
+      const data = await response.json();
+      setWord(data.currentWord);
     };
 
     fetchWord();
-  }, [roomId, setServerResponse]); // Use roomId in the dependency array
+  }, [roomId]); // Use roomId in the dependency array
 
   return (
     <View style={styles.wordContainer}>
@@ -50,6 +51,6 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
   textStyle: {
-    fontSize: 48,
+    fontSize: 30,
   }
 });

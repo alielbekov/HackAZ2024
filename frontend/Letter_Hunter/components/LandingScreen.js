@@ -1,18 +1,25 @@
-import {ImageBackground, Pressable, SafeAreaView, StatusBar, StyleSheet, Text, TouchableOpacity, View} from "react-native";
+import {ImageBackground, SafeAreaView, StyleSheet, Text, TouchableOpacity, View} from "react-native";
 import {fetchStartIds} from "../api/endpoints";
 import {globalStyles} from "../styles/globalStyles";
+import {toastError, toastErrorWithMsg} from "./Toasts";
 
 const backgroundImage = require('../assets/background-image.jpg');
 export const LandingScreen = ({navigationRef}) => {
+    // Don't allow call to navigate in async function.
+    const callNavigate = (response) => {
+        navigationRef.navigate("Wait", response);
+    };
 
     const handleStart = async () => {
-        const res = await fetchStartIds();
-        if (res.status !== 200) {
+        const res = await fetchStartIds().catch(toastError);
+
+        if (!res.ok) {
+            toastErrorWithMsg("Error starting game", new Error(`HTTP error! status: ${res.status}`));
             return;
         }
-        data = await res.json();
-        const {roomId, userId} = data;
-        navigationRef.navigate("Game", {roomId, userId})  
+
+        const data = await res.json();
+        callNavigate(data);
     }
     
     return (
@@ -60,8 +67,8 @@ const styles = StyleSheet.create({
     },
     logoContainer: {
         flex: 7 / 9,
-        alignItems: 'center',
-        justifyContent: 'center',
+        justifyContent: "center",
+        // backgroundColor: 'white',
     },
     buttonContainer: {
         width: 320,
@@ -90,5 +97,6 @@ const styles = StyleSheet.create({
     textFont: {
         fontSize: 100,
         color: '#ffea00',
+        textAlign: 'center',
     },
 });
