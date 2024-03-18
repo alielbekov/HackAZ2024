@@ -4,14 +4,14 @@ import {globalStyles} from "../styles/globalStyles";
 import socket from '../socket/socketService'
 
 
-export const WaitingScreen = ({ navigationRef, route }) => {
+export const WaitingScreen = ({navigationRef, route}) => {
   const [numPlayers, setNumPlayers] = useState(0);
   const [currentUser, setCurrentUser] = useState({ name: '', color: '' });
   const [allUsers, setAllUsers] = useState([]);
 
   useEffect(() => {
     // Emit joinRoom event as soon as the component mounts
-    socket.emit('joinRoom', { roomId: route.params.roomId, userId: route.params.userId });
+    socket.emit('joinRoom', {roomId: route.params.roomId, userId: route.params.userId});
 
     const updatePlayerNumber = (users) => {
       const usersMap = new Map(Object.entries(users));
@@ -47,7 +47,7 @@ export const WaitingScreen = ({ navigationRef, route }) => {
   }, [navigationRef, route.params.roomId, route.params.userId]); // Add dependencies here
 
   const startGame = () => {
-    socket.emit('startGame', { roomId: route.params.roomId });
+    socket.emit('startGame', {roomId: route.params.roomId});
 
     navigationRef.navigate("Game", {
       roomId: route.params.roomId,

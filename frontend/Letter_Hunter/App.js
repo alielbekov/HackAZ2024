@@ -4,9 +4,9 @@ import {createNativeStackNavigator} from '@react-navigation/native-stack';
 import {LandingScreen} from "./components/LandingScreen";
 import GamePage from './components/GamePage';
 import {JoinRoomScreen} from "./components/JoinRoomScreen";
-import {TouchableOpacity, Text, Image} from 'react-native'; // Make sure to import Text here
+import {Image, Text, TouchableOpacity} from 'react-native'; // Make sure to import Text here
 import AppLoading from 'expo-app-loading';
-import {useFonts, Chewy_400Regular} from '@expo-google-fonts/chewy';
+import {Chewy_400Regular, useFonts} from '@expo-google-fonts/chewy';
 import {globalStyles} from './styles/globalStyles';
 import Toast from "react-native-toast-message";
 import {WaitingScreen} from "./components/WaitingScreen";
@@ -33,18 +33,18 @@ export default function App() {
         <Stack.Screen name="Join">
           {() => <JoinRoomScreen navigationRef={navigationRef}/>}
         </Stack.Screen>
-        <Stack.Screen 
-        name="Wait"
-        options = {() => ({
+        <Stack.Screen
+          name="Wait"
+          options={() => ({
             headerTitle: '',
             headerShadowVisible: false,
             headerTintColor: 'white',
             headerStyle: {
-                backgroundColor: '#184e77',
-                
+              backgroundColor: '#184e77',
+
             },
-        })
-        }>
+          })
+          }>
           {(props) => <WaitingScreen navigationRef={navigationRef} route={props.route}/>}
         </Stack.Screen>
         <Stack.Screen
@@ -54,17 +54,24 @@ export default function App() {
             headerTitle: '',
             headerShadowVisible: false,
             headerStyle: {
-                backgroundColor: '#184e77',
-                
+              backgroundColor: '#184e77',
+
             },
             headerLeft: () => (
               <TouchableOpacity onPress={() => navigation.goBack()}
-              style={{borderRadius:17, backgroundColor: '#2a9d8f', padding:10, margin:"10px",  flexDirection: 'row'}}>
-                <Image source={require('./assets/leave-room.png')} style={{width: 20, height: 25, backgroundColor:'#2a9d8f', marginRight:2}}/>
-                <Text style={[{fontSize:18, color: '#ffe8d6'}, globalStyles.text]}>Leave Room</Text>
+                                style={{
+                                  borderRadius: 17,
+                                  backgroundColor: '#2a9d8f',
+                                  padding: 10,
+                                  margin: 10,
+                                  flexDirection: 'row'
+                                }}>
+                <Image source={require('./assets/leave-room.png')}
+                       style={{width: 20, height: 25, backgroundColor: '#2a9d8f', marginRight: 2}}/>
+                <Text style={[{fontSize: 18, color: '#ffe8d6'}, globalStyles.text]}>Leave Room</Text>
               </TouchableOpacity>
             ),
-          })}   
+          })}
         />
       </Stack.Navigator>
       <Toast/>
