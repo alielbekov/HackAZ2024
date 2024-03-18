@@ -42,6 +42,7 @@ export default function GamePage({route}) {
       return () => {
           socket.off('newPlayer', handleNewPlayer);
           socket.off('lettersUpdated', handleLettersUpdated);
+          socket.off('gameOver', handleGameOver);
       };
   }, []);
 

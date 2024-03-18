@@ -1,6 +1,8 @@
 import {Pressable, SafeAreaView, StyleSheet, Text, View} from "react-native";
 import {useEffect, useState} from "react";
 import {globalStyles} from "../styles/globalStyles";
+import socket from '../socket/socketService'
+
 
 export const WaitingScreen = ({ navigationRef, route }) => {
   const [numPlayers, setNumPlayers] = useState(0);
@@ -8,6 +10,25 @@ export const WaitingScreen = ({ navigationRef, route }) => {
   useEffect(() => {
     //todo: connect to join-room socket and update numPlayers.
     //todo: connect to start game socket and navigate to game page when told.
+    const updatePlayerNumber = (playerNumber) => {
+      console.log("updatePlayerNumber client", playerNumber);
+      setNumPlayers(playerNumber);
+    }
+
+    const handleGameStart = () => {
+      navigationRef.navigate("Game", {
+        roomId: route.params.roomId,
+        userId: route.params.userId,
+      });
+    }
+
+    socket.on('updatePlayerNumber', updatePlayerNumber);
+    socket.on('startGame', handleGameStart);
+
+    return () => {
+      socket.off('updatePlayerNumber', updatePlayerNumber);
+      socket.off('startGame', handleGameStart);
+    };
   }, []);
 
   const startGame = () => {
