@@ -8,13 +8,11 @@ const uploadDir = 'uploads/';
 const path = require('path');
 const cors = require('cors');
 const { v4: uuidv4 } = require('uuid');
-//const faker = require('faker');
-
 const {generateUsername } = require("unique-username-generator");
 const http = require('http');
 const { Server } = require("socket.io");
 const app = express();
-const server = http.createServer(app); // Create HTTP server from Express app
+const server = http.createServer(app);
 const io = new Server(server, {
     cors: {
         origin: "*", // Adjust according to your security requirements
@@ -22,27 +20,16 @@ const io = new Server(server, {
     }
 });
 
-const PORT = 3000;
-const publicUrlBase = 'http://localhost:3000/uploads/'
-
+const {User} = require('./models/User');
 
 if (!fs.existsSync(uploadDir)) {
     fs.mkdirSync(uploadDir, { recursive: true });
 }
 
-// Rooms structure: Maps room ID to room state
+const PORT = 3000;
 const rooms = new Map();
 
-// User Class - Contains name, color and score (initially 0) of the user.
-class User {
-    constructor(name, color) {
-      this.name = name;
-      this.color = color;
-      this.score = 0;
-    }
-  }
 
-// Configure multer for image storage
 const storage = multer.diskStorage({
     destination: function(req, file, cb) {
         // Assuming roomId is available in req.body or as a URL parameter. Adjust as necessary.
@@ -80,56 +67,6 @@ app.use(express.static('public'));
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 app.use(cors());
 
-app.post('/image', upload.single('image'), async (req, res) => {
-    const { roomId, userId } = req.body;
-    if (rooms.has(roomId)) {
-        const room = rooms.get(roomId);
-        if (!room.users.has(userId)) {
-            return res.status(403).json({ error: 'User not in room' });
-        }
-        try {
-            let imagePath;
-            if (req.file) {
-                // If you're using multer, the file has already been saved at this point.
-                // To include userId in the filename for multer uploads, you'd need to rename the file here.
-                const newFilename = `${userId}-${req.file.filename}`;
-                const newPath = path.join(req.file.destination, newFilename);
-                fs.renameSync(req.file.path, newPath);
-                imagePath = newPath;
-            } else if (req.body.imageBase64) {
-                // For Base64, include the userId directly in the filename as you save it.
-                const base64Data = req.body.imageBase64.split(';base64,').pop();
-                imagePath = `${uploadDir}${roomId}-${userId}-${Date.now()}.jpg`;
-                fs.writeFileSync(imagePath, base64Data, {encoding: 'base64'});
-            } else {
-                return res.status(400).json({ error: 'No file uploaded, URI, or Base64 data provided.' });
-            }
-            // OCR processing and further logic...
-            const ocrResult = await ocrSpace(imagePath, { apiKey: process.env.OCR_API_KEY });
-            const letters = ocrResult.ParsedResults[0].ParsedText.replace(/[^a-zA-Z]/g, '').toLowerCase().split('');
-            let scoreIncrement = 0; // Initialize score increment
-            letters.forEach(letter => {
-                if (!room.lettersFound.has(letter) && room.currentWord.includes(letter)) {
-                    room.lettersFound.set(letter, room.users.get(userId).color); // Associate the letter with the user's color
-                    scoreIncrement += 1; // Increment score for each new correct letter found
-                }
-            });
-            // Update user's score
-            const user = room.users.get(userId);
-            user.score += scoreIncrement; // Update score based on found letters
-            // Check if game is over
-            const gameStatus = isGameOver(room.lettersFound, room.currentWord);
-            res.status(200).json({status: 'success', isGameOver: gameStatus, scoreIncrement: scoreIncrement, totalScore: user.score});
-        } catch (error) {
-            console.error('Error:', error);
-            res.status(500).json({ error: 'Internal server error' });
-        }
-    }
-    else {
-        res.status(404).json({ error: 'Room not found' })
-    }
-});
-
 app.get("/get-found-letters/:roomId", (req, res) => {
     const roomId = req.params.roomId;
     console.log("get-found-letters", roomId);
@@ -145,8 +82,6 @@ app.get("/get-found-letters/:roomId", (req, res) => {
         res.status(404).json({ error: 'Room not found' });
     }
 });
-
-
 
 app.get('/get-word/:roomId', (req, res) => {
     const roomId = req.params.roomId;
@@ -207,39 +142,56 @@ app.get("/get-room-info/:roomId", (req, res) => {
     }  
  });
 
-// Generate Random Colors
-app.get('/get-color/:roomId/:userId', (req, res) => {
-    const userId = req.params.userId;
-    const roomId = req.params.roomId;
-    if(rooms.has(roomId)) {
-        const room = rooms.get(roomId);
-        if(room.users.has(userId)) {
-            const user = room.users.get(userId);
-            const color = user.color;
-            res.json({ userId, color });
-        } else {
-            res.status(404).json({ error: 'User not found' });
-        }
-    } else {
-        res.status(404).json({ error: 'Room not found' });
+app.post('/image', upload.single('image'), async (req, res) => {
+const { roomId, userId } = req.body;
+if (rooms.has(roomId)) {
+    const room = rooms.get(roomId);
+    if (!room.users.has(userId)) {
+        return res.status(403).json({ error: 'User not in room' });
     }
+    try {
+        let imagePath;
+        if (req.file) {
+            // If you're using multer, the file has already been saved at this point.
+            // To include userId in the filename for multer uploads, you'd need to rename the file here.
+            const newFilename = `${userId}-${req.file.filename}`;
+            const newPath = path.join(req.file.destination, newFilename);
+            fs.renameSync(req.file.path, newPath);
+            imagePath = newPath;
+        } else if (req.body.imageBase64) {
+            // For Base64, include the userId directly in the filename as you save it.
+            const base64Data = req.body.imageBase64.split(';base64,').pop();
+            imagePath = `${uploadDir}${roomId}-${userId}-${Date.now()}.jpg`;
+            fs.writeFileSync(imagePath, base64Data, {encoding: 'base64'});
+        } else {
+            return res.status(400).json({ error: 'No file uploaded, URI, or Base64 data provided.' });
+        }
+        // OCR processing and further logic...
+        const ocrResult = await ocrSpace(imagePath, { apiKey: process.env.OCR_API_KEY });
+        const letters = ocrResult.ParsedResults[0].ParsedText.replace(/[^a-zA-Z]/g, '').toLowerCase().split('');
+        let scoreIncrement = 0; // Initialize score increment
+        letters.forEach(letter => {
+            if (!room.lettersFound.has(letter) && room.currentWord.includes(letter)) {
+                room.lettersFound.set(letter, room.users.get(userId).color); // Associate the letter with the user's color
+                scoreIncrement += 1; // Increment score for each new correct letter found
+            }
+        });
+        // Update user's score
+        const user = room.users.get(userId);
+        user.score += scoreIncrement; // Update score based on found letters
+        // Check if game is over
+        const gameStatus = isGameOver(room.lettersFound, room.currentWord);
+        res.status(200).json({status: 'success', isGameOver: gameStatus, scoreIncrement: scoreIncrement, totalScore: user.score});
+    } catch (error) {
+        console.error('Error:', error);
+        res.status(500).json({ error: 'Internal server error' });
+    }
+}
+else {
+    res.status(404).json({ error: 'Room not found' })
+}
 });
 
-
-async function getImagesForTheRoom(roomId){
-    const images = fs.readdirSync(uploadDir).filter(fileName => {
-        // Filter files starting with the roomId
-        return fileName.startsWith(roomId + '-'); // Assuming a naming convention like 'roomId-filename.ext'
-    }).map(fileName => {
-        // Generate a URL for each filtered image
-        return `${publicUrlBase}${fileName}`;
-    });
-
-    return images;
-
-}
-
-// Leave a room
 app.post('/leave-room', (req, res) => {
     const { roomId, userId } = req.body;
     if (rooms.has(roomId)) {
@@ -280,8 +232,7 @@ function isGameOver(lettersFound, currentWord){
     return gameStatus;
 }
 
-
-
+// Function to generate a random color that is vivid and easy to read on light blue background
 function generateRandomColor() {
     // Generate a random hue from the color wheel
     const hue = Math.floor(Math.random() * 360);
@@ -298,7 +249,6 @@ function generateRandomColor() {
     return color;
 }
 
-// Helper function to convert HSV to RGB
 function hsvToRgb(h, s, v) {
     s /= 100;
     v /= 100;
@@ -311,7 +261,7 @@ function hsvToRgb(h, s, v) {
     };
 }
 
-// Helper function to convert a color component to a hexadecimal string
+
 function componentToHex(c) {
     const hex = c.toString(16);
     return hex.length == 1 ? "0" + hex : hex;
