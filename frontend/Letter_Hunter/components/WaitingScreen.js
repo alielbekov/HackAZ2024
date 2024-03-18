@@ -1,4 +1,4 @@
-import {Pressable, SafeAreaView, StyleSheet, Text, View} from "react-native";
+import { ScrollView, Pressable, SafeAreaView, StyleSheet, Text, View } from "react-native";
 import {useEffect, useState} from "react";
 import {globalStyles} from "../styles/globalStyles";
 import socket from '../socket/socketService'
@@ -6,16 +6,29 @@ import socket from '../socket/socketService'
 
 export const WaitingScreen = ({ navigationRef, route }) => {
   const [numPlayers, setNumPlayers] = useState(0);
+  const [currentUser, setCurrentUser] = useState({ name: '', color: '' });
+  const [allUsers, setAllUsers] = useState([]);
 
   useEffect(() => {
     // Emit joinRoom event as soon as the component mounts
     socket.emit('joinRoom', { roomId: route.params.roomId, userId: route.params.userId });
 
-    const updatePlayerNumber = (playerNumber) => {
-      console.log("updatePlayerNumber client", playerNumber);
+    const updatePlayerNumber = (users) => {
+      const usersMap = new Map(Object.entries(users));
+      const playerNumber = usersMap.size;
       setNumPlayers(playerNumber);
+      
+      // Assuming that route.params.userId is the current user's id
+      const currentUser = usersMap.get(route.params.userId);
+      setCurrentUser({ name: currentUser?.name, color: currentUser?.color });
+    
+      const usersList = Array.from(usersMap.values()).map(user => ({
+        name: user.name,
+        color: user.color,
+      }));
+      setAllUsers(usersList);
     };
-
+    
     const handleGameStart = () => {
       navigationRef.navigate("Game", {
         roomId: route.params.roomId,
@@ -49,8 +62,16 @@ export const WaitingScreen = ({ navigationRef, route }) => {
           <Text style={[styles.titleLabel, globalStyles.text]}>{`Room ID: ${route.params.roomId}`}</Text>
         </Pressable>
       </View>
+      <View style={styles.currentUserContainer}>
+        <Text style={[styles.label, { color: currentUser.color }]}>{`You: ${currentUser.name}`}</Text>
+      </View>
       <View style={styles.statusContainer}>
         <Text style={[styles.label, globalStyles.text]}>{`Number of players: ${numPlayers}`}</Text>
+        <ScrollView style={styles.usersList}>
+          {allUsers.map((user, index) => (
+            <Text key={index} style={[styles.userLabel, { color: user.color }]}>{user.name}</Text>
+          ))}
+        </ScrollView>
       </View>
       <View style={styles.buttonContainer}>
         <Pressable style={[styles.button, {backgroundColor: "#457EE5"}]} onPress={startGame}>
